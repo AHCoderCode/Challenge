@@ -447,9 +447,9 @@ function drawFrame(time) {
   const sliding=Boolean(game&&game.slideTime>0),board=Boolean(game&&game.boardActive);
   const scale=clamp(height/720,.72,1.22);
   if(game&&state==="running"&&game.hitFlash>0) { ctx.fillStyle="rgba(255,255,255,"+(game.hitFlash*.3)+")"; ctx.fillRect(0,0,width,height); }
-  const chaserY=height*(.955-Math.min(.045,(game?.runTime||0)*.0007));
-  drawRunner(playerX,playerY,scale,time,false,jumpHeight,sliding,board);
+  const chaserY=height*(.82-Math.min(.03,(game?.runTime||0)*.0003));
   drawRunner(width/2+(game?(game.visualLane-1)*laneSpacing*.42:-laneSpacing*.42),chaserY,scale*.68,time+80,true,0,false,false);
+  drawRunner(playerX,playerY,scale,time,false,jumpHeight,sliding,board);
   if(game&&game.boardActive) { ctx.save(); ctx.globalAlpha=.32; ctx.fillStyle="#a5ffd0"; ctx.fillRect(0,0,width,height); ctx.restore(); }
   ctx.restore();
 }
