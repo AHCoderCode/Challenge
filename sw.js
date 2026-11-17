@@ -1,4 +1,4 @@
-const CACHE = "chaat-rush-v4";
+const CACHE = "chaat-rush-v5-abbas";
 const CORE = ["/","/index.html","/styles.css","/game.js","/manifest.webmanifest","/icon.svg"];
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js";
 const THREE_CORE_URL = "https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.core.js";
