@@ -31,6 +31,7 @@ let best = Number(localStorage.getItem("chaat-rush-best") || 0);
 let soundOn = localStorage.getItem("chaat-rush-sound") !== "off";
 let masterVolume = clamp(Number(localStorage.getItem("chaat-rush-volume") ?? 90) / 100,0,1);
 let chantEnabled = localStorage.getItem("chaat-rush-chant") !== "off";
+let chantSession = 0;
 let audioContext = null;
 let masterGainNode = null;
 let audioReady = false;
@@ -46,6 +47,7 @@ let scene, camera, renderer, world, playerRig, chaserRig;
 let roadMarkers = [], buildings = [], lamps = [], entities = [], speedStreaks = [];
 let streaksGroup;
 let resizeObserver;
+const RUNNER_FACE_DATA_URL = "data:image/webp;base64,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";
 
 const canvas = $("gameCanvas");
 const rendererOptions = {canvas,antialias:true,alpha:false,powerPreference:"high-performance",stencil:false,depth:true};
@@ -94,14 +96,15 @@ const mats = {
   coin:new THREE.MeshStandardMaterial({color:0xffce55,metalness:.7,roughness:.25,emissive:0xa76b18,emissiveIntensity:.16}),
   teal:new THREE.MeshStandardMaterial({color:0x19b8aa,roughness:.73}),
   tealDark:new THREE.MeshStandardMaterial({color:0x0e7775,roughness:.8}),
+  playerBlack:new THREE.MeshStandardMaterial({color:0x17191f,roughness:.88}),
   orange:new THREE.MeshStandardMaterial({color:0xf1a05d,roughness:.72}),
-  skinTeen:new THREE.MeshStandardMaterial({color:0x70442f,roughness:.82}),
+  skinTeen:new THREE.MeshStandardMaterial({color:0x593522,roughness:.82}),
   skinAdult:new THREE.MeshStandardMaterial({color:0x68402f,roughness:.84}),
   eyeWhite:new THREE.MeshStandardMaterial({color:0xf3eee3,roughness:.38}),
   faceDetail:new THREE.MeshStandardMaterial({color:0x241a19,roughness:.78}),
   shirtGold:new THREE.MeshStandardMaterial({color:0xffcf78,metalness:.16,roughness:.48}),
   shoeSole:new THREE.MeshStandardMaterial({color:0x17232d,roughness:.88}),
-  hair:new THREE.MeshStandardMaterial({color:0x211b20,roughness:.95}),
+  hair:new THREE.MeshStandardMaterial({color:0x09090c,roughness:.95}),
   jeans:new THREE.MeshStandardMaterial({color:0x273d56,roughness:.92}),
   shoe:new THREE.MeshStandardMaterial({color:0xf0e7d4,roughness:.72}),
   chaserShirt:new THREE.MeshStandardMaterial({color:0x385f82,roughness:.86}),
@@ -236,12 +239,13 @@ function makeCharacter(options) {
   const root=new THREE.Group();
   const rig={root,legs:[],arms:[],torso:null,head:null,options};
   const skin=options.skin==="adult"?mats.skinAdult:mats.skinTeen;
-  const shirt=options.skin==="adult"?mats.chaserShirt:mats.teal;
+  const shirt=options.skin==="adult"?mats.chaserShirt:mats.playerBlack;
   const legMat=mats.jeans;
   const build=options.build||"slim";
-  const torso=addMesh(root,new THREE.SphereGeometry(1,24,16),shirt,[0,1.15,0],
-    build==="stocky"?[.72,.69,.45]:[.46,.72,.33]);
+  const torso=addMesh(root,new THREE.SphereGeometry(1,32,24),shirt,[0,1.15,.015],
+    build==="stocky"?[.82,.78,.55]:[.46,.72,.33]);
   rig.torso=torso;
+  if(build==="stocky") addMesh(root,new THREE.SphereGeometry(1,32,24),shirt,[0,.96,.085],[.78,.47,.55]);
   addMesh(root,new THREE.SphereGeometry(1,12,8),options.skin==="adult"?mats.chaserTrim:mats.tealDark,[0,1.73,.01],
     build==="stocky"?[.52,.2,.37]:[.37,.18,.3]);
   const head=addMesh(root,new THREE.SphereGeometry(1,24,16),skin,[0,2.05,0],[.34,.39,.33]);
@@ -256,42 +260,37 @@ function makeCharacter(options) {
   }
   addMesh(root,new THREE.SphereGeometry(.052,10,8),skin,[0,2.005,.326],[.72,.9,.8]);
   makeBox(root,.105,.018,.018,mats.faceDetail,0,1.925,.309);
-  const frontZ=build==="stocky"?.445:.326;
+  const frontZ=build==="stocky"?.625:.326;
   makeBox(root,.34,.19,.045,mats.shirtGold,0,1.34,frontZ);
   makeBox(root,.23,.035,.05,mats.tealDark,0,1.34,frontZ+.028);
   makeBox(root,.045,.14,.025,mats.shoe,0,1.34,frontZ+.055);
-  // Back hair cap; the chaser has loose medium-long locks at the sides and nape.
-  addMesh(root,new THREE.SphereGeometry(1,20,14),mats.hair,[0,2.27,.035],[.365,.245,.36]);
-  if(options.skin!=="adult") {
-    addMesh(root,new THREE.SphereGeometry(.15,12,8),mats.hair,[-.16,2.285,.245],[1,.55,.72]);
-    addMesh(root,new THREE.SphereGeometry(.15,12,8),mats.hair,[.08,2.31,.25],[1,.45,.72]);
-  }
+  // Close-cropped black hair for the runner; the chaser keeps longer locks.
+  addMesh(root,new THREE.SphereGeometry(1,24,16),mats.hair,[0,2.27,.035],[.365,.16,.36]);
   if(options.skin==="adult") {
     for(const side of [-1,1]) {
       const lock=addMesh(root,new THREE.CapsuleGeometry(.075,.43,3,6),mats.hair,[side*.29,1.91,.1]);
       lock.rotation.z=side*.14;
     }
     addMesh(root,new THREE.SphereGeometry(.12,8,6),mats.hair,[0,1.86,.29],[1,1,.65]);
-  } else {
-    addMesh(root,new THREE.SphereGeometry(.2,10,7),mats.hair,[0,2.3,-.12],[1,.38,.7]);
   }
   // Neck
   makeCylinder(root,.13,.15,.2,skin,0,1.78,0,9);
   // Arms rotate at the shoulder to make an alternating running motion.
   for(const side of [-1,1]) {
     const armPivot=new THREE.Group();
-    armPivot.position.set(side*(build==="stocky"?.52:.4),1.55,0);
+    armPivot.position.set(side*(build==="stocky"?.61:.4),1.55,0);
     root.add(armPivot);
-    const upper=makeCylinder(armPivot,.13,.16,.43,skin,0,-.22,0,8);
+    const armRadius=build==="stocky"?.18:.13;
+    const upper=makeCylinder(armPivot,armRadius,armRadius+.03,.43,skin,0,-.22,0,10);
     upper.rotation.z=side*-.13;
-    addMesh(armPivot,new THREE.SphereGeometry(.115,10,8),skin,[0,-.47,-.03]);
+    addMesh(armPivot,new THREE.SphereGeometry(build==="stocky"?.15:.115,12,10),skin,[0,-.47,-.03]);
     makeCylinder(armPivot,.145,.145,.065,mats.shirtGold,0,-.39,.005,10);
     rig.arms.push({pivot:armPivot,side});
   }
   // Legs are separate pivots so the feet alternate naturally.
   for(const side of [-1,1]) {
     const legPivot=new THREE.Group();
-    legPivot.position.set(side*(build==="stocky"?.22:.17),.78,0);
+    legPivot.position.set(side*(build==="stocky"?.27:.17),.78,0);
     root.add(legPivot);
     makeCylinder(legPivot,.145,.18,.48,legMat,0,-.24,0,9);
     makeBox(legPivot,.31,.15,.48,mats.shoe,0,-.5,-.09);
@@ -320,6 +319,16 @@ function animateCharacter(rig,time,phase=0) {
 }
 function buildPlayer() {
   playerRig=makeCharacter({skin:"teen",build:"stocky"});
+  const faceTexture=new THREE.TextureLoader().load(RUNNER_FACE_DATA_URL);
+  faceTexture.colorSpace=THREE.SRGBColorSpace;
+  const faceDecal=new THREE.Mesh(
+    new THREE.PlaneGeometry(.625,.65),
+    new THREE.MeshBasicMaterial({map:faceTexture,transparent:true,alphaTest:.025,side:THREE.DoubleSide,depthWrite:false})
+  );
+  faceDecal.position.set(0,2.055,.337);
+  faceDecal.renderOrder=2;
+  playerRig.root.add(faceDecal);
+  playerRig.faceDecal=faceDecal;
   playerRig.root.position.set(0,0,PLAYER_Z);
   chaserRig=makeCharacter({skin:"adult",build:"slim"});
   chaserRig.root.scale.setScalar(1.12);
@@ -416,12 +425,12 @@ function setMasterVolume(value) {
   if(ui.volumeValue) ui.volumeValue.textContent=Math.round(masterVolume*100)+"%";
 }
 function stopChant() {
+  chantSession++;
   if("speechSynthesis" in window) window.speechSynthesis.cancel();
 }
-function speakChant() {
-  if(!soundOn||!chantEnabled||!("speechSynthesis" in window)) return;
+function queueChant(session) {
+  if(session!==chantSession||!soundOn||!chantEnabled||state!=="running"||!("speechSynthesis" in window)) return;
   const speech=window.speechSynthesis;
-  speech.cancel();
   const utterance=new SpeechSynthesisUtterance("Abbas Bhai ki Chaat Lo!");
   const voices=speech.getVoices();
   const voice=voices.find(item=>/^ur(-|$)/i.test(item.lang))
@@ -431,8 +440,17 @@ function speakChant() {
   else utterance.lang="en-IN";
   utterance.rate=.94;
   utterance.pitch=1.04;
-  utterance.volume=masterVolume;
+  utterance.volume=Math.min(1,masterVolume*1.35);
+  utterance.onend=()=>{
+    if(session===chantSession&&state==="running"&&soundOn&&chantEnabled) queueChant(session);
+  };
   speech.speak(utterance);
+}
+function speakChant() {
+  if(!soundOn||!chantEnabled||state!=="running"||!("speechSynthesis" in window)) return;
+  const session=++chantSession;
+  window.speechSynthesis.cancel();
+  queueChant(session);
 }
 function playSweep(from,to,duration=.2,volume=.035,type="sawtooth") {
   if(!soundOn||!audioReady||!audioContext) return;
@@ -490,7 +508,7 @@ function resetGame() {
     lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.78,jumpVelocity:0,jumpHeight:0,
     slideRemaining:0,spawnTimer:.8,speed:22,distance:0,score:0,coins:0,
     magnetTime:0,multiplierTime:0,shield:false,boardCharges:1,boardTime:0,
-    boardActive:false,runTime:0,shake:0,hitFlash:0,pattern:0,chantTimer:0,musicTimer:.18,musicStep:0
+    boardActive:false,runTime:0,shake:0,hitFlash:0,pattern:0,musicTimer:.18,musicStep:0
   };
   playerRig.root.position.set(0,0,PLAYER_Z);
   playerRig.root.scale.set(1,1,1);
@@ -536,7 +554,7 @@ function beginRun() {
   state="running";ui.ready.classList.add("hidden");
   updateHud();
   previousTime=performance.now();
-  game.chantTimer=10.8;game.musicTimer=.08;
+  game.musicTimer=.08;
   soundEffect("start");
   speakChant();
 }
@@ -549,7 +567,7 @@ function resumeGame() {
   if(state!=="paused") return;
   ensureAudio();
   state="running";ui.pause.classList.add("hidden");previousTime=performance.now();
-  game.chantTimer=10.8;speakChant();
+  speakChant();
 }
 function finishGame() {
   if(state!=="running") return;
@@ -764,8 +782,6 @@ function updateGame(dt) {
   game.runTime+=dt;
   game.musicTimer-=dt;
   if(game.musicTimer<=0){playRunBeat(game.musicStep++);game.musicTimer=.48;}
-  game.chantTimer-=dt;
-  if(game.chantTimer<=0){speakChant();game.chantTimer=10.8;}
   game.speed=Math.min(35,22+game.runTime*.22);
   scenerySpeed=game.speed;
   game.distance+=game.speed*dt*.42;
