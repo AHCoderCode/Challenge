@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0b1426">
-<meta name="description" content="Chaat Rush — a smooth 3D city runner. Swipe, dodge, jump and collect coins.">
-<title>CHAAT RUSH — 3D City Runner</title>
+<meta name="description" content="Abbas Bhai ki Chaat Lo — an original 3D city runner. Swipe, dodge, jump and collect coins.">
+<title>ABBAS BHAI KI CHAAT LO — 3D RUNNER</title>
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="stylesheet" href="/styles.css">
@@ -14,9 +14,10 @@
 <main id="app">
 <canvas id="gameCanvas" aria-label="Three-dimensional Chaat Rush endless runner. Swipe left and right to change lanes, up to jump and down to slide." role="img"></canvas>
 <div class="topbar">
-<a class="brand" href="/" aria-label="Chaat Rush home"><span class="brand-mark">CR</span><span>CHAAT <b>RUSH</b></span></a>
+<a class="brand" href="/" aria-label="Chaat Rush home"><span class="brand-mark">AB</span><span>ABBAS <b>RUN</b></span></a>
 <div class="top-actions">
-<button class="icon-button" id="soundButton" type="button" aria-label="Toggle sound" title="Toggle sound">♫</button>
+<button class="icon-button" id="soundButton" type="button" aria-label="Toggle game audio" aria-pressed="true" title="Toggle game audio">♫</button>
+<button class="icon-button chant-button" id="chantButton" type="button" aria-label="Mute Abbas Bhai chant" aria-pressed="true" title="Toggle Abbas Bhai chant">Aa</button>
 <button class="icon-button" id="fullscreenButton" type="button" aria-label="Toggle fullscreen" title="Fullscreen">⛶</button>
 </div>
 </div>
@@ -31,24 +32,25 @@
 
 <section class="screen loading-screen" id="loadingScreen">
 <div class="loader-orbit"><span></span><span></span><span></span></div>
-<p class="eyebrow">A CITY FULL OF SURPRISES</p>
+<p class="eyebrow loading-kicker">ABBAS BHAI KI CHAAT LO!</p>
 <h1>CHAAT <em>RUSH</em></h1>
-<p class="loading-copy">Building your city…</p>
+<p class="loading-copy">Getting Abbas Bhai’s city ready…</p>
 <div class="loading-track"><span id="loadingProgress"></span></div>
 <p class="loading-percent" id="loadingPercent">0%</p>
 </section>
 
 <section class="screen menu-screen" id="menuScreen">
 <div class="menu-card">
-<div class="tagline">DASH • DODGE • COLLECT</div>
-<h1>ABBAS <span>HAIDER</span><span>NAQVI</span><span>MOTA!</span> </h1>
-<p class="menu-subtitle">Abbas bhai ki chaat lo! 👅</p>
+<div class="tagline">THE ABBAS BHAI CHALLENGE</div>
+<h1 class="player-title"><span class="player-name">ABBAS</span><span class="player-surname">HAIDER NAQVI</span></h1>
+<p class="menu-subtitle">ABBAS BHAI KI CHAAT LO!</p>
 <div class="character-badges">
-<div class="character-badge"><span class="runner-avatar">🏃🏽‍♂️</span><div><b>THE RUNNER</b><small>Fast feet. Big energy.</small></div></div>
+<div class="character-badge"><span class="runner-avatar">🏃🏽‍♂️</span><div><b>ABBAS BHAI</b><small>The city’s fastest runner.</small></div></div>
 <div class="character-badge"><span class="chaser-avatar">🕵🏽‍♂️</span><div><b>THE CHASER</b><small>Always right behind.</small></div></div>
 </div>
 <div class="best-row"><span>PERSONAL BEST</span><strong id="menuBest">0</strong></div>
 <button class="primary-button" id="startButton" type="button"><span>START RUN</span><span class="button-arrow">→</span></button>
+<div class="audio-settings"><label for="volumeSlider"><span>GAME AUDIO</span><strong id="volumeValue">90%</strong></label><input id="volumeSlider" type="range" min="0" max="100" value="90" step="1" aria-label="Game audio volume"></div>
 <p class="menu-note">Swipe left/right to switch lanes · Up to jump · Down to slide</p>
 </div>
 <div class="floating-chip chip-one">✦ COIN BONUS</div>
@@ -58,14 +60,14 @@
 <section class="screen intro-screen hidden" id="introScreen">
 <div class="intro-burst"><span>✦</span><span>✦</span><span>✦</span></div>
 <p class="eyebrow">READY? HERE WE GO!</p>
-<h2>CHAAAT <em>RUSH!</em></h2>
-<p>CHALO! LET'S RUN!</p>
+<h2>ABBAS <em>BHAI!</em></h2>
+<p>CHAAT LO! LET'S RUN!</p>
 <div class="intro-bars"><i></i><i></i><i></i><i></i><i></i></div>
 </section>
 
 <section class="screen ready-screen hidden" id="readyScreen">
   <div class="ready-card">
-    <p class="eyebrow">THE CHASE IS ABOUT TO BEGIN</p>
+    <p class="eyebrow">ABBAS BHAI KI CHAAT LO!</p>
     <h2>READY, <em>RUNNER?</em></h2>
     <p class="ready-instruction">SWIPE LEFT OR RIGHT TO CHANGE LANES</p>
     <div class="gesture-demo" aria-hidden="true"><span>←</span><span>↑</span><span>↓</span><span>→</span></div>
