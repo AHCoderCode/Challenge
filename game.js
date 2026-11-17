@@ -36,13 +36,20 @@ let previousTime = 0;
 let scenerySpeed = 22;
 let swipeStart = null;
 let lastTap = 0;
+let qualityScale = 1;
+let perfTime = 0, perfTotal = 0, perfFrames = 0;
 let scene, camera, renderer, world, playerRig, chaserRig;
 let roadMarkers = [], buildings = [], lamps = [], entities = [];
 let resizeObserver;
 
 const canvas = $("gameCanvas");
 const rendererOptions = {canvas,antialias:true,alpha:false,powerPreference:"high-performance",stencil:false,depth:true};
-renderer = new THREE.WebGLRenderer(rendererOptions);
+try {
+  renderer = new THREE.WebGLRenderer(rendererOptions);
+} catch (error) {
+  $("loadingScreen").innerHTML = "<div class='dialog-card'><p class='eyebrow'>3D GRAPHICS UNAVAILABLE</p><h2>CAN'T START THE RUN</h2><p>This browser could not start WebGL. Try updating the browser or enabling hardware acceleration.</p></div>";
+  throw error;
+}
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.08;
@@ -319,10 +326,11 @@ function spawnPattern() {
 }
 function removeEntity(entity) {
   world.remove(entity.group);
-  for(const child of entity.group.children) {
-    if(child.geometry && child.geometry!==null) { /* Shared primitive geometries remain cached by the browser. */ }
-  }
+  entity.group.traverse((object) => {
+    if (object.geometry) object.geometry.dispose();
+  });
 }
+
 function clearEntities() {
   for(const entity of entities) removeEntity(entity);
   entities=[];
@@ -626,8 +634,18 @@ function updateCamera(dt) {
   camera.lookAt(target);
 }
 function render(time) {
-  const dt=Math.min(.04,Math.max(0,(time-(previousTime||time))/1000));
+  const rawDt=Math.max(0,(time-(previousTime||time))/1000);
+  const dt=Math.min(.04,rawDt);
   previousTime=time;
+  if(rawDt>0){perfTotal+=rawDt*1000;perfFrames++;}
+  if(time-perfTime>2200&&perfFrames>25){
+    const average=perfTotal/perfFrames;
+    const oldQuality=qualityScale;
+    if(average>22)qualityScale=Math.max(.72,qualityScale-.10);
+    else if(average<16)qualityScale=Math.min(1,qualityScale+.05);
+    if(Math.abs(qualityScale-oldQuality)>.001)resize();
+    perfTime=time;perfTotal=0;perfFrames=0;
+  }
   if(game) {
     if(state==="running")updateGame(dt);
     else {
@@ -641,7 +659,7 @@ function render(time) {
 }
 function resize() {
   const ratio=window.matchMedia("(max-width: 700px)").matches?1.2:1.55;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,ratio));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,ratio*qualityScale));
   renderer.setSize(window.innerWidth,window.innerHeight,false);
   camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
