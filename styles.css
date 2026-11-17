@@ -39,3 +39,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #a5ffd0;outline-offset:3p
 }
 @media(max-height:640px) and (min-width:701px){.menu-screen{align-items:center;padding-top:58px;padding-bottom:45px}.menu-card{padding:17px 24px;width:min(390px,100%)}.menu-card h1{font-size:55px}.menu-subtitle{margin-bottom:10px}.character-badges{margin-bottom:9px}.best-row{padding:8px}.menu-note{margin-top:7px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+@media(pointer:coarse){.desktop-hint{display:none}.mobile-hint{display:inline}.bottom-hint{font-size:7px;letter-spacing:.08em;padding:0 12px}}
+@media(min-width:701px){.swipe-hint{display:none!important}}
