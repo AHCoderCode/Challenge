@@ -1,25 +1,32 @@
-# Chaat Rush — City Runner
+# Chaat Rush — 3D City Runner
 
-An original three-lane endless runner built with Canvas 2D, vanilla JavaScript and responsive CSS. No game-engine install or server is required.
+A fast, original three-lane endless runner made with Three.js and vanilla JavaScript. It is a static Vercel site with no server or account requirement.
 
 ## Controls
 
-- Desktop: Left/Right arrows or A/D to change lanes; Up/Space/W to jump; Down/S to slide; Shift to use a hoverboard; P or Escape to pause.
-- Touch: Swipe left/right/up/down on the play field, use the on-screen direction pad, or tap BOARD to use a collected hoverboard.
+**Mobile and tablet:** Swipe left/right to switch lanes, swipe up to jump, and swipe down to slide. Double-tap during a run to activate a collected hoverboard.
 
-## Features
+**Desktop:** A/D or Left/Right to switch lanes, W/Up/Space to jump, S/Down to slide, Shift or B for a hoverboard, and P/Escape to pause.
 
-- Perspective city scenery with an animated runner and pursuer.
-- Crates, barriers, overhead gates and traffic to dodge.
-- Coins, magnet, 2x score, shield and hoverboard pickups.
-- Increasing speed, score, distance, saved personal best and sound toggle.
-- Responsive controls for phones, tablets, laptops and desktops.
-- Original synthesized sound effects, PWA install metadata and offline caching.
+## Gameplay
+
+- Real-time 3D city road, buildings, lights and perspective camera.
+- A stylized teen runner and a taller adult pursuer.
+- Three lanes, smooth lane transitions, jumping and sliding.
+- Crates, low barriers, overhead gates and traffic.
+- Coins, magnet, score multiplier, shield and hoverboard pickups.
+- Increasing speed, score, distance and saved personal best.
+- Original synthesized intro tune and sound effects.
+- Responsive touch and keyboard input, fullscreen support and offline app caching.
+
+## Performance
+
+The renderer uses WebGL with high-performance preference, capped device pixel ratio on mobile, no real-time shadow maps, and lightweight shared materials/geometries to keep draw cost controlled.
 
 ## Deploy
 
-Static site. Import this repository into Vercel with the project root set to `/`. No build command or dependencies are required.
+The repository is a static site. Vercel should use the repository root as the project root. No build command, package installation, or environment variables are required. Three.js is loaded from jsDelivr and cached by the service worker where supported.
 
 ## Originality
 
-This is an original arcade runner inspired by the endless-runner genre. It does not use Subway Surfers characters, artwork, logos, music or source code.
+Chaat Rush is an original arcade runner inspired by the general endless-runner genre. It does not use Subway Surfers characters, artwork, logos, music, or source code.
