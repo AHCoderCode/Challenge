@@ -143,3 +143,89 @@ button:focus-visible,a:focus-visible{outline:3px solid #a5ffd0;outline-offset:3p
   .ready-footnote{font-size:8px}
   .loading-screen h1{font-size:clamp(64px,18vw,92px)}
 }
+
+
+/* Abbas Bhai edition: sharper name hierarchy, polished menu and compact audio controls. */
+.menu-card h1.player-title{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.035em;
+  margin:13px 0 10px;
+  font-size:clamp(55px,10.8vw,80px);
+  line-height:.78;
+  letter-spacing:-.045em;
+  text-transform:uppercase;
+}
+.player-title .player-name{
+  color:#f8fbff;
+  text-shadow:0 5px 24px rgba(100,237,197,.14),0 8px 35px #051020aa;
+}
+.player-title .player-surname{
+  color:var(--mint);
+  font-size:.68em;
+  letter-spacing:.015em;
+  text-shadow:0 0 24px rgba(113,236,201,.18);
+}
+.menu-card .tagline{color:#ffd58a;letter-spacing:.22em}
+.menu-subtitle{
+  display:inline-block;
+  margin:2px 0 20px;
+  padding:8px 13px;
+  border:1px solid rgba(255,207,122,.23);
+  border-radius:999px;
+  color:#ffe0a6;
+  background:rgba(255,190,93,.07);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.13em;
+  text-shadow:0 2px 12px rgba(255,177,79,.18);
+}
+.loading-kicker{color:#ffd58a}
+.audio-settings{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:4px 12px;
+  margin:13px 0 0;
+  padding:9px 12px 8px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:13px;
+  background:rgba(255,255,255,.045);
+  text-align:left;
+}
+.audio-settings label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  color:#a9bacb;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.15em;
+}
+.audio-settings label strong{color:#caffdf;font-size:9px;font-variant-numeric:tabular-nums}
+.audio-settings input{
+  grid-column:1 / -1;
+  width:100%;
+  height:16px;
+  margin:0;
+  accent-color:#8ff2c7;
+  cursor:pointer;
+}
+.chant-button{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:900;letter-spacing:-.05em}
+.icon-button[aria-pressed="false"]{opacity:.58;background:#0e1c3266}
+.character-badge:first-child{border-color:rgba(157,255,207,.23);background:rgba(157,255,207,.065)}
+.character-badge:first-child b{color:#caffdf}
+@media(max-width:700px){
+  .menu-card h1.player-title{font-size:clamp(50px,13.5vw,72px);margin:11px 0 9px}
+  .menu-subtitle{margin-bottom:13px;font-size:9px;padding:7px 10px}
+  .audio-settings{margin-top:10px;padding:7px 10px}
+  .top-actions{gap:5px}
+  .chant-button{font-size:11px}
+}
+@media(max-height:640px) and (min-width:701px){
+  .menu-card h1.player-title{font-size:58px}
+  .menu-subtitle{margin-bottom:9px}
+  .audio-settings{margin-top:7px;padding:6px 10px}
+}
