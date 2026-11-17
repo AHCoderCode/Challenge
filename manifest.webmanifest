@@ -1,0 +1,11 @@
+{
+  "name": "Chaat Rush — City Runner",
+  "short_name": "Chaat Rush",
+  "description": "Dash through the city, dodge obstacles and collect coins.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101a2e",
+  "theme_color": "#101a2e",
+  "orientation": "any",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
