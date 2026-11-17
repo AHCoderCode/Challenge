@@ -17,7 +17,7 @@ const ui = {
   swipeHint:$("swipeHint")
 };
 
-const LANES = [-2.35, 0, 2.35];
+const LANES = [-3.2, 0, 3.2];
 const PLAYER_Z = 0;
 const SPAWN_Z = -64;
 const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
@@ -255,7 +255,7 @@ function buildPlayer() {
   playerRig=makeCharacter({skin:"teen",build:"stocky"});
   playerRig.root.position.set(0,0,PLAYER_Z);
   chaserRig=makeCharacter({skin:"adult",build:"slim"});
-  chaserRig.root.scale.setScalar(.98);
+  chaserRig.root.scale.setScalar(1.12);
   chaserRig.root.position.set(-1.35,0,4.2);
 }
 function createObstacle(type,lane,z) {
@@ -481,7 +481,7 @@ window.addEventListener("keydown",(event)=>{
 canvas.addEventListener("pointerdown",(event)=>{
   if(state!=="running")return;
   const now=performance.now();
-  if(now-lastTap<300){useBoard();lastTap=0;return;}
+  if(now-lastTap<300){swipeStart=null;useBoard();lastTap=0;return;}
   lastTap=now;
   swipeStart={x:event.clientX,y:event.clientY,id:event.pointerId};
   try{canvas.setPointerCapture(event.pointerId);}catch{}
