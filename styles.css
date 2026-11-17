@@ -42,3 +42,104 @@ button:focus-visible,a:focus-visible{outline:3px solid #a5ffd0;outline-offset:3p
 
 @media(pointer:coarse){.desktop-hint{display:none}.mobile-hint{display:inline}.bottom-hint{font-size:7px;letter-spacing:.08em;padding:0 12px}}
 @media(min-width:701px){.swipe-hint{display:none!important}}
+
+/* Clear ready gate: Start Run never begins gameplay until the player taps again. */
+.ready-screen{
+  z-index:6;
+  background:radial-gradient(ellipse at 50% 54%,rgba(21,67,81,.62),rgba(5,14,28,.48) 60%,rgba(4,11,23,.66));
+  text-align:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.ready-card{
+  width:min(440px,100%);
+  padding:clamp(25px,5vh,40px);
+  border:1px solid rgba(208,255,239,.28);
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(9,24,40,.88),rgba(8,17,31,.91));
+  box-shadow:0 26px 90px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.12);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+  pointer-events:auto;
+}
+.ready-card h2{
+  margin:9px 0 14px;
+  color:#f8fff9;
+  font-family:'Barlow Condensed',Impact,sans-serif;
+  font-size:clamp(52px,10vw,82px);
+  font-weight:900;
+  line-height:.9;
+  letter-spacing:-.025em;
+  text-shadow:0 5px 24px rgba(0,0,0,.45);
+}
+.ready-card h2 em{color:var(--mint);font-style:normal}
+.ready-instruction{
+  margin:0;
+  color:#e4f5ef;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.15em;
+}
+.gesture-demo{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin:23px 0 12px;
+}
+.gesture-demo span{
+  display:grid;
+  place-items:center;
+  width:43px;
+  height:43px;
+  border:1px solid rgba(166,255,218,.38);
+  border-radius:14px;
+  color:#c9ffe5;
+  background:rgba(110,225,208,.09);
+  font-size:23px;
+  font-weight:700;
+  box-shadow:0 5px 18px rgba(0,0,0,.18);
+}
+.ready-subline{
+  margin:0 0 23px;
+  color:#9eb7b5;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.17em;
+}
+.ready-subline i{color:var(--mint);font-style:normal;margin:0 7px}
+.tap-play-button{
+  justify-content:center;
+  gap:19px;
+  min-height:62px;
+  font-size:14px;
+  box-shadow:0 9px 35px rgba(100,237,197,.26),inset 0 1px rgba(255,255,255,.7);
+  animation:tapPulse 1.5s ease-in-out infinite;
+}
+.tap-play-button .button-arrow{font-size:18px}
+@keyframes tapPulse{
+  0%,100%{transform:scale(1);filter:brightness(1)}
+  50%{transform:scale(1.025);filter:brightness(1.09)}
+}
+.ready-footnote{
+  margin:13px 0 0;
+  color:#91a8b3;
+  font-size:9px;
+  letter-spacing:.04em;
+}
+.loading-screen{background:radial-gradient(ellipse at 50% 42%,#234d63 0%,#101a2e 60%,#0b1426 100%)}
+.loading-screen .eyebrow{font-size:11px}
+.loading-screen h1{font-size:clamp(64px,13vw,116px)}
+.loading-track{height:6px;width:min(290px,68vw);background:rgba(255,255,255,.24)}
+.loading-percent{font-size:11px;font-weight:800;color:#c2d8df;letter-spacing:.17em}
+@media(max-width:700px){
+  .ready-screen{padding:64px 14px max(56px,env(safe-area-inset-bottom))}
+  .ready-card{padding:25px 20px 22px;border-radius:23px}
+  .ready-card h2{font-size:clamp(52px,15vw,72px)}
+  .ready-instruction{font-size:9px;line-height:1.55}
+  .gesture-demo{gap:8px;margin:20px 0 11px}
+  .gesture-demo span{width:39px;height:39px;border-radius:12px}
+  .ready-subline{font-size:8px;margin-bottom:20px}
+  .tap-play-button{min-height:57px;font-size:13px}
+  .ready-footnote{font-size:8px}
+  .loading-screen h1{font-size:clamp(64px,18vw,92px)}
+}
