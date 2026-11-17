@@ -14,7 +14,7 @@ const ui = {
   hud:$("hud"),score:$("scoreValue"),coins:$("coinValue"),distance:$("distanceValue"),
   menuBest:$("menuBest"),finalScore:$("finalScore"),finalCoins:$("finalCoins"),
   finalDistance:$("finalDistance"),finalBest:$("finalBest"),power:$("powerStatus"),
-  swipeHint:$("swipeHint")
+  swipeHint:$("swipeHint"),ready:$("readyScreen")
 };
 
 const LANES = [-3.2, 0, 3.2];
@@ -39,7 +39,8 @@ let lastTap = 0;
 let qualityScale = 1;
 let perfTime = 0, perfTotal = 0, perfFrames = 0;
 let scene, camera, renderer, world, playerRig, chaserRig;
-let roadMarkers = [], buildings = [], lamps = [], entities = [];
+let roadMarkers = [], buildings = [], lamps = [], entities = [], speedStreaks = [];
+let streaksGroup;
 let resizeObserver;
 
 const canvas = $("gameCanvas");
@@ -90,8 +91,8 @@ const mats = {
   teal:new THREE.MeshStandardMaterial({color:0x19b8aa,roughness:.73}),
   tealDark:new THREE.MeshStandardMaterial({color:0x0e7775,roughness:.8}),
   orange:new THREE.MeshStandardMaterial({color:0xf1a05d,roughness:.72}),
-  skinTeen:new THREE.MeshStandardMaterial({color:0x9b644b,roughness:.92}),
-  skinAdult:new THREE.MeshStandardMaterial({color:0x87543e,roughness:.92}),
+  skinTeen:new THREE.MeshStandardMaterial({color:0x70442f,roughness:.94}),
+  skinAdult:new THREE.MeshStandardMaterial({color:0x68402f,roughness:.94}),
   hair:new THREE.MeshStandardMaterial({color:0x211b20,roughness:.95}),
   jeans:new THREE.MeshStandardMaterial({color:0x273d56,roughness:.92}),
   shoe:new THREE.MeshStandardMaterial({color:0xf0e7d4,roughness:.72}),
@@ -189,6 +190,33 @@ function buildScenery() {
     for(let i=0;i<10;i++) buildLamp(side*6.5,-188+i*19);
   }
 }
+function buildSpeedStreaks() {
+  const geometry=new THREE.PlaneGeometry(.025,1.7);
+  const material=new THREE.MeshBasicMaterial({
+    color:0xc9fff1,transparent:true,opacity:.3,depthWrite:false,
+    blending:THREE.AdditiveBlending,side:THREE.DoubleSide
+  });
+  for(let i=0;i<28;i++) {
+    const streak=new THREE.Mesh(geometry,material);
+    streak.position.set(pick([-5.3,-4.8,-4.2,4.2,4.8,5.3]),random(.8,4.6),random(-96,8));
+    streak.scale.y=random(.65,2.4);
+    streak.rotation.z=random(-.12,.12);
+    streaksGroup.add(streak);
+    speedStreaks.push(streak);
+  }
+}
+function updateSpeedStreaks(dt) {
+  const velocity=(game?.speed||22)*1.7*dt;
+  for(const streak of speedStreaks) {
+    streak.position.z+=velocity;
+    if(streak.position.z>8) {
+      streak.position.z=random(-105,-78);
+      streak.position.x=pick([-5.3,-4.8,-4.2,4.2,4.8,5.3]);
+      streak.position.y=random(.8,4.6);
+      streak.scale.y=random(.65,2.4);
+    }
+  }
+}
 function limb(parent,materialValue,length,radius) {
   const pivot=new THREE.Group();
   parent.add(pivot);
@@ -204,7 +232,7 @@ function makeCharacter(options) {
   const legMat=mats.jeans;
   const build=options.build||"slim";
   const torso=addMesh(root,new THREE.SphereGeometry(1,16,12),shirt,[0,1.15,0],
-    build==="stocky"?[.64,.69,.42]:[.46,.72,.33]);
+    build==="stocky"?[.72,.69,.45]:[.46,.72,.33]);
   rig.torso=torso;
   addMesh(root,new THREE.SphereGeometry(1,12,8),options.skin==="adult"?mats.chaserTrim:mats.tealDark,[0,1.73,.01],
     build==="stocky"?[.52,.2,.37]:[.37,.18,.3]);
@@ -249,6 +277,15 @@ function makeCharacter(options) {
   } else {
     makeBox(root,.16,.2,.05,mats.chaserTrim,0,1.45,.3);
   }
+  // Fine dark contours give the two characters a hand-inked, sketchbook finish.
+  const inkLineMaterial=new THREE.LineBasicMaterial({color:0x17161a,transparent:true,opacity:.76,depthWrite:false});
+  root.traverse((object)=>{
+    if(!object.isMesh || !object.geometry) return;
+    const edges=new THREE.EdgesGeometry(object.geometry,27);
+    const outline=new THREE.LineSegments(edges,inkLineMaterial);
+    outline.renderOrder=4;
+    object.add(outline);
+  });
   world.add(root);
   return rig;
 }
@@ -376,7 +413,7 @@ window.addEventListener("pointerdown",ensureAudio,{once:true,passive:true});
 function resetGame() {
   clearEntities();
   game={
-    lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.86,
+    lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.78,jumpVelocity:0,jumpHeight:0,
     slideRemaining:0,spawnTimer:.8,speed:22,distance:0,score:0,coins:0,
     magnetTime:0,multiplierTime:0,shield:false,boardCharges:1,boardTime:0,
     boardActive:false,runTime:0,shake:0,hitFlash:0,pattern:0
@@ -404,7 +441,7 @@ function updateHud() {
 function showMenu() {
   state="menu";
   ui.menu.classList.remove("hidden");ui.pause.classList.add("hidden");
-  ui.over.classList.add("hidden");ui.intro.classList.add("hidden");
+  ui.over.classList.add("hidden");ui.intro.classList.add("hidden");ui.ready.classList.add("hidden");
   ui.hud.classList.remove("visible");ui.power.textContent="";
   ui.menuBest.textContent=best.toLocaleString();
   ui.swipeHint.classList.add("hidden");
@@ -412,17 +449,17 @@ function showMenu() {
 }
 function startGame() {
   ensureAudio();playIntroMusic();resetGame();
-  state="intro";
+  state="ready";
   ui.menu.classList.add("hidden");ui.pause.classList.add("hidden");ui.over.classList.add("hidden");
-  ui.intro.classList.remove("hidden");ui.hud.classList.add("visible");
-  ui.swipeHint.classList.remove("hidden");
+  ui.intro.classList.add("hidden");ui.ready.classList.remove("hidden");
+  ui.hud.classList.add("visible");ui.swipeHint.classList.add("hidden");
   document.body.classList.add("is-running");
-  setTimeout(()=>{
-    if(state!=="intro") return;
-    state="running";ui.intro.classList.add("hidden");
-    updateHud();
-  },1550);
-  setTimeout(()=>{if(state==="running")ui.swipeHint.classList.add("hidden");},4200);
+}
+function beginRun() {
+  if(state!=="ready") return;
+  state="running";ui.ready.classList.add("hidden");
+  updateHud();
+  previousTime=performance.now();
 }
 function pauseGame() {
   if(state!=="running") return;
@@ -448,15 +485,30 @@ function finishGame() {
 function moveLane(direction) {
   if(state!=="running") return;
   const next=clamp(game.lane+direction,0,2);
-  if(next!==game.lane){game.lane=next;game.targetX=LANES[next];soundEffect("move");}
+  if(next!==game.lane){
+    game.lane=next;game.targetX=LANES[next];
+    // Apply the lane change immediately; the renderer only smooths the final few pixels.
+    soundEffect("move");
+  }
 }
 function jump() {
-  if(state!=="running"||game.jumpRemaining>0||game.slideRemaining>0) return;
-  game.jumpRemaining=game.jumpDuration;soundEffect("jump");
+  if(state!=="running") return;
+  if(game.slideRemaining>0) game.slideRemaining=0;
+  if(game.jumpRemaining>0) return;
+  game.jumpRemaining=game.jumpDuration;
+  game.jumpVelocity=9.8;
+  game.jumpHeight=.08;
+  playerRig.root.position.y=game.jumpHeight;
+  soundEffect("jump");
 }
 function slide() {
-  if(state!=="running"||game.slideRemaining>0||game.jumpRemaining>0) return;
+  if(state!=="running") return;
+  if(game.jumpRemaining>0) {
+    game.jumpRemaining=0;game.jumpVelocity=0;game.jumpHeight=0;
+    playerRig.root.position.y=0;
+  }
   game.slideRemaining=.76;
+  playerRig.root.scale.y=.62;
 }
 function useBoard() {
   if(state!=="running"||game.boardCharges<1||game.boardActive) return;
@@ -475,6 +527,7 @@ window.addEventListener("keydown",(event)=>{
   const keys=["arrowleft","arrowright","arrowup","arrowdown"," ","a","d","w","s","p","escape","shift","b","enter"];
   if(keys.includes(key))event.preventDefault();
   if(state==="menu"&&(key==="enter"||key===" ")){startGame();return;}
+  if(state==="ready"&&(key==="enter"||key===" ")){beginRun();return;}
   if(key==="p"||key==="escape"){
     if(state==="running")pauseGame();else if(state==="paused")resumeGame();
     return;
@@ -486,26 +539,42 @@ window.addEventListener("keydown",(event)=>{
   if(key==="arrowdown"||key==="s")input("down");
   if(key==="shift"||key==="b")input("board");
 });
+const SWIPE_THRESHOLD=11;
 canvas.addEventListener("pointerdown",(event)=>{
   if(state!=="running")return;
-  const now=performance.now();
-  if(now-lastTap<300){swipeStart=null;useBoard();lastTap=0;return;}
-  lastTap=now;
-  swipeStart={x:event.clientX,y:event.clientY,id:event.pointerId};
+  swipeStart={x:event.clientX,y:event.clientY,id:event.pointerId,triggered:false,startedAt:performance.now()};
   try{canvas.setPointerCapture(event.pointerId);}catch{}
+});
+canvas.addEventListener("pointermove",(event)=>{
+  if(!swipeStart||state!=="running"||swipeStart.triggered)return;
+  const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<SWIPE_THRESHOLD)return;
+  swipeStart.triggered=true;
+  if(Math.abs(dx)>Math.abs(dy))input(dx>0?"right":"left");
+  else input(dy<0?"up":"down");
 });
 canvas.addEventListener("pointerup",(event)=>{
   if(!swipeStart||state!=="running"){swipeStart=null;return;}
   const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;
-  const threshold=Math.max(24,Math.min(58,Math.min(window.innerWidth,window.innerHeight)*.055));
-  if(Math.max(Math.abs(dx),Math.abs(dy))>threshold){
+  const distance=Math.max(Math.abs(dx),Math.abs(dy));
+  if(!swipeStart.triggered&&distance>=SWIPE_THRESHOLD){
     if(Math.abs(dx)>Math.abs(dy))input(dx>0?"right":"left");
     else input(dy<0?"up":"down");
+    lastTap=0;
+  } else if(!swipeStart.triggered&&distance<SWIPE_THRESHOLD){
+    const now=performance.now();
+    if(lastTap&&now-lastTap<285){useBoard();lastTap=0;}
+    else lastTap=now;
   }
   swipeStart=null;
 });
 canvas.addEventListener("pointercancel",()=>{swipeStart=null;});
 $("startButton").addEventListener("click",startGame);
+$("tapToPlayButton").addEventListener("click",(event)=>{event.stopPropagation();beginRun();});
+ui.ready.addEventListener("click",(event)=>{
+  if(event.target.closest("#tapToPlayButton"))return;
+  beginRun();
+});
 $("retryButton").addEventListener("click",startGame);
 $("restartButton").addEventListener("click",startGame);
 $("resumeButton").addEventListener("click",resumeGame);
@@ -588,6 +657,7 @@ function updateScenery(dt) {
     item.group.position.z+=move;
     if(item.group.position.z>14)item.group.position.z-=205;
   }
+  updateSpeedStreaks(dt);
 }
 function updateGame(dt) {
   if(state!=="running"||!game)return;
@@ -596,12 +666,17 @@ function updateGame(dt) {
   game.distance+=game.speed*dt*.42;
   game.spawnTimer-=dt;
   if(game.spawnTimer<=0)spawnPattern();
-  game.visualX=smooth(game.visualX,game.targetX,1-Math.exp(-dt*13));
+  game.visualX=smooth(game.visualX,game.targetX,1-Math.exp(-dt*42));
   playerRig.root.position.x=game.visualX;
-  const jumpProgress=game.jumpRemaining>0?1-game.jumpRemaining/game.jumpDuration:0;
-  const jumpHeight=game.jumpRemaining>0?Math.sin(jumpProgress*Math.PI)*1.35:0;
-  playerRig.root.position.y=jumpHeight;
-  if(game.jumpRemaining>0)game.jumpRemaining=Math.max(0,game.jumpRemaining-dt);
+  if(game.jumpRemaining>0){
+    game.jumpHeight+=game.jumpVelocity*dt;
+    game.jumpVelocity-=25*dt;
+    game.jumpRemaining=Math.max(0,game.jumpRemaining-dt);
+    if(game.jumpHeight<=0&&game.jumpVelocity<0){
+      game.jumpHeight=0;game.jumpVelocity=0;game.jumpRemaining=0;
+    }
+  } else {game.jumpHeight=0;game.jumpVelocity=0;}
+  playerRig.root.position.y=game.jumpHeight;
   if(game.slideRemaining>0)game.slideRemaining=Math.max(0,game.slideRemaining-dt);
   playerRig.root.scale.y=game.slideRemaining>0?.62:1;
   playerRig.root.rotation.z=smooth(playerRig.root.rotation.z,0,dt*8);
@@ -671,21 +746,24 @@ if("ResizeObserver" in window) {
 }
 
 function initialize() {
-  addLights();buildRoad();buildScenery();buildPlayer();
+  addLights();buildRoad();buildScenery();
+  streaksGroup=new THREE.Group();world.add(streaksGroup);buildSpeedStreaks();
+  buildPlayer();
   camera.position.set(0,5.5,10.5);camera.lookAt(0,1,-15);
 }
 function boot() {
   initialize();
   ui.menuBest.textContent=best.toLocaleString();
-  let progress=0;
-  const timer=setInterval(()=>{
-    progress=Math.min(100,progress+random(8,17));
-    ui.progress.style.width=progress+"%";ui.percent.textContent=Math.floor(progress)+"%";
-    if(progress>=100){
-      clearInterval(timer);
-      setTimeout(()=>{ui.loading.classList.add("done");showMenu();},250);
-    }
-  },85);
+  const started=performance.now();
+  const minimumVisibleMs=1550;
+  function drawLoading(now){
+    const progress=Math.min(100,((now-started)/minimumVisibleMs)*100);
+    ui.progress.style.width=progress+"%";
+    ui.percent.textContent=Math.floor(progress)+"%";
+    if(progress<100)requestAnimationFrame(drawLoading);
+    else setTimeout(()=>{ui.loading.classList.add("done");showMenu();},350);
+  }
+  requestAnimationFrame(drawLoading);
 }
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")) {
   window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
