@@ -1,4 +1,4 @@
-# Chaat Rush — 3D City Runner
+# Abbas Bhai ki Chaat Lo — 3D City Runner
 
 A fast, original three-lane endless runner made with Three.js and vanilla JavaScript. It is a static Vercel site with no server or account requirement.
 
@@ -11,12 +11,12 @@ A fast, original three-lane endless runner made with Three.js and vanilla JavaSc
 ## Gameplay
 
 - Real-time 3D city road, buildings, lights and perspective camera.
-- A stylized teen runner and a taller adult pursuer.
+- A more detailed teen runner with face, clothing, shoe and contact-shadow details, plus a taller adult pursuer.
 - Three lanes, smooth lane transitions, jumping and sliding.
 - Crates, low barriers, overhead gates and traffic.
 - Coins, magnet, score multiplier, shield and hoverboard pickups.
 - Increasing speed, score, distance and saved personal best.
-- Original synthesized intro tune and sound effects.
+- Original synthesized intro tune, run beat, movement/coin/power-up effects, and a repeating browser text-to-speech Abbas Bhai catchphrase while running. Game volume and chant can be adjusted or muted.
 - Responsive touch and keyboard input, fullscreen support and offline app caching.
 
 ## Performance
