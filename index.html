@@ -3,61 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101a2e">
-<meta name="description" content="Chaat Rush is a colorful three-lane city runner. Dodge, jump, slide and collect coins.">
-<title>CHAAT RUSH — City Runner</title>
+<meta name="theme-color" content="#0b1426">
+<meta name="description" content="Chaat Rush — a smooth 3D city runner. Swipe, dodge, jump and collect coins.">
+<title>CHAAT RUSH — 3D City Runner</title>
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <main id="app">
-<canvas id="gameCanvas" aria-label="Chaat Rush game. Swipe or use the arrow keys to dodge obstacles." role="img"></canvas>
+<canvas id="gameCanvas" aria-label="Three-dimensional Chaat Rush endless runner. Swipe left and right to change lanes, up to jump and down to slide." role="img"></canvas>
 <div class="topbar">
 <a class="brand" href="/" aria-label="Chaat Rush home"><span class="brand-mark">CR</span><span>CHAAT <b>RUSH</b></span></a>
-<div class="top-actions"><button class="icon-button" id="soundButton" type="button" aria-label="Toggle sound">♫</button><button class="icon-button" id="fullscreenButton" type="button" aria-label="Toggle fullscreen">⛶</button></div>
+<div class="top-actions">
+<button class="icon-button" id="soundButton" type="button" aria-label="Toggle sound" title="Toggle sound">♫</button>
+<button class="icon-button" id="fullscreenButton" type="button" aria-label="Toggle fullscreen" title="Fullscreen">⛶</button>
+</div>
 </div>
 <section class="hud" id="hud" aria-live="polite">
 <div class="hud-pill"><span class="hud-label">SCORE</span><strong id="scoreValue">0</strong></div>
-<div class="hud-pill"><span class="coin-icon">●</span><strong id="coinValue">0</strong></div>
+<div class="hud-pill coin-pill"><span class="coin-icon">●</span><strong id="coinValue">0</strong></div>
 <div class="hud-pill distance-pill"><span class="hud-label">DISTANCE</span><strong id="distanceValue">0 m</strong></div>
 <button class="pause-button" id="pauseButton" type="button" aria-label="Pause game">Ⅱ</button>
 </section>
 <div class="power-status" id="powerStatus" aria-live="polite"></div>
+<div class="swipe-hint hidden" id="swipeHint">SWIPE TO MOVE</div>
+
 <section class="screen loading-screen" id="loadingScreen">
 <div class="loader-orbit"><span></span><span></span><span></span></div>
-<p class="eyebrow">A CITY FULL OF SURPRISES</p><h1>CHAAT <em>RUSH</em></h1>
-<p class="loading-copy">Warming up the streets…</p><div class="loading-track"><span id="loadingProgress"></span></div><p class="loading-percent" id="loadingPercent">0%</p>
+<p class="eyebrow">A CITY FULL OF SURPRISES</p>
+<h1>CHAAT <em>RUSH</em></h1>
+<p class="loading-copy">Building your city…</p>
+<div class="loading-track"><span id="loadingProgress"></span></div>
+<p class="loading-percent" id="loadingPercent">0%</p>
 </section>
+
 <section class="screen menu-screen" id="menuScreen">
 <div class="menu-card">
-<div class="tagline">DASH • DODGE • COLLECT</div><h1>CHAAT <span>RUSH</span></h1>
-<p class="menu-subtitle">The streets are yours. How far can you run?</p>
+<div class="tagline">DASH • DODGE • COLLECT</div>
+<h1>CHAAT <span>RUSH</span></h1>
+<p class="menu-subtitle">A fresh city. A fast chase. Your next high score.</p>
 <div class="character-badges">
-<div class="character-badge"><span>🏃🏽‍♂️</span><div><b>THE RUNNER</b><small>Quick feet. Big energy.</small></div></div>
-<div class="character-badge"><span>🕵🏻‍♂️</span><div><b>THE CHASER</b><small>He's right behind you.</small></div></div>
+<div class="character-badge"><span class="runner-avatar">🏃🏽‍♂️</span><div><b>THE RUNNER</b><small>Fast feet. Big energy.</small></div></div>
+<div class="character-badge"><span class="chaser-avatar">🕵🏽‍♂️</span><div><b>THE CHASER</b><small>Always right behind.</small></div></div>
 </div>
 <div class="best-row"><span>PERSONAL BEST</span><strong id="menuBest">0</strong></div>
 <button class="primary-button" id="startButton" type="button"><span>START RUN</span><span class="button-arrow">→</span></button>
-<p class="menu-note">Sound begins when you start. Ready?</p>
+<p class="menu-note">Swipe left/right to switch lanes · Up to jump · Down to slide</p>
 </div>
-<div class="floating-chip chip-one">✦ COIN BONUS</div><div class="floating-chip chip-two">↗ NEW RUN</div>
+<div class="floating-chip chip-one">✦ COIN BONUS</div>
+<div class="floating-chip chip-two">↗ THE CHASE IS ON</div>
 </section>
+
+<section class="screen intro-screen hidden" id="introScreen">
+<div class="intro-burst"><span>✦</span><span>✦</span><span>✦</span></div>
+<p class="eyebrow">READY? HERE WE GO!</p>
+<h2>CHAAAT <em>RUSH!</em></h2>
+<p>CHALO! LET'S RUN!</p>
+<div class="intro-bars"><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+
 <section class="screen pause-screen hidden" id="pauseScreen">
-<div class="dialog-card"><div class="dialog-icon">Ⅱ</div><p class="eyebrow">TAKE A BREATHER</p><h2>RUN PAUSED</h2><p>Your city sprint is waiting.</p>
-<button class="primary-button" id="resumeButton" type="button">RESUME <span>→</span></button><button class="secondary-button" id="restartButton" type="button">RESTART RUN</button></div>
+<div class="dialog-card">
+<div class="dialog-icon">Ⅱ</div><p class="eyebrow">TAKE A BREATHER</p><h2>RUN PAUSED</h2>
+<p>Your city sprint is waiting.</p>
+<button class="primary-button" id="resumeButton" type="button">RESUME <span>→</span></button>
+<button class="secondary-button" id="restartButton" type="button">RESTART RUN</button>
+</div>
 </section>
+
 <section class="screen over-screen hidden" id="overScreen">
-<div class="dialog-card"><div class="dialog-icon game-over-icon">✦</div><p class="eyebrow">THAT WAS A CLOSE ONE</p><h2>RUN OVER</h2>
-<div class="result-grid"><div><span>YOUR SCORE</span><strong id="finalScore">0</strong></div><div><span>COINS</span><strong id="finalCoins">0</strong></div><div><span>DISTANCE</span><strong id="finalDistance">0 m</strong></div><div><span>BEST</span><strong id="finalBest">0</strong></div></div>
-<button class="primary-button" id="retryButton" type="button">RUN IT BACK <span>↻</span></button><button class="secondary-button" id="homeButton" type="button">BACK TO HOME</button>
+<div class="dialog-card">
+<div class="dialog-icon game-over-icon">✦</div><p class="eyebrow">THAT WAS A CLOSE ONE</p><h2>RUN OVER</h2>
+<div class="result-grid">
+<div><span>YOUR SCORE</span><strong id="finalScore">0</strong></div>
+<div><span>COINS</span><strong id="finalCoins">0</strong></div>
+<div><span>DISTANCE</span><strong id="finalDistance">0 m</strong></div>
+<div><span>BEST</span><strong id="finalBest">0</strong></div>
+</div>
+<button class="primary-button" id="retryButton" type="button">RUN IT BACK <span>↻</span></button>
+<button class="secondary-button" id="homeButton" type="button">BACK TO HOME</button>
 </div>
 </section>
-<div class="mobile-controls" id="mobileControls" aria-label="Touch controls">
-<div class="move-pad"><button type="button" data-action="left" aria-label="Move left">‹</button><button type="button" data-action="down" aria-label="Slide">⌄</button><button type="button" data-action="right" aria-label="Move right">›</button><button type="button" data-action="up" aria-label="Jump">⌃</button></div>
-<button type="button" class="board-button" id="boardButton" aria-label="Use hoverboard">BOARD <b id="boardCount">1</b></button>
-</div>
-<footer class="bottom-hint" id="bottomHint"><span class="desktop-hint">← → MOVE <i>•</i> ↑ / SPACE JUMP <i>•</i> ↓ SLIDE <i>•</i> P PAUSE</span><span class="mobile-hint">SWIPE TO MOVE · TAP THE ARROWS TO PLAY</span></footer>
+
+<footer class="bottom-hint" id="bottomHint">
+<span class="desktop-hint">A / D OR ← / → MOVE <i>•</i> W / SPACE JUMP <i>•</i> S SLIDE <i>•</i> P PAUSE</span>
+<span class="mobile-hint">SWIPE LEFT / RIGHT TO MOVE · UP TO JUMP · DOWN TO SLIDE</span>
+</footer>
 </main>
 <script type="module" src="/game.js"></script>
-</body></html>
+</body>
+</html>
