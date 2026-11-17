@@ -14,7 +14,8 @@ const ui = {
   hud:$("hud"),score:$("scoreValue"),coins:$("coinValue"),distance:$("distanceValue"),
   menuBest:$("menuBest"),finalScore:$("finalScore"),finalCoins:$("finalCoins"),
   finalDistance:$("finalDistance"),finalBest:$("finalBest"),power:$("powerStatus"),
-  swipeHint:$("swipeHint"),ready:$("readyScreen")
+  swipeHint:$("swipeHint"),ready:$("readyScreen"),
+  soundButton:$("soundButton"),chantButton:$("chantButton"),volumeSlider:$("volumeSlider"),volumeValue:$("volumeValue")
 };
 
 const LANES = [-3.2, 0, 3.2];
@@ -28,7 +29,10 @@ const smooth = (current,target,amount) => current + (target-current)*amount;
 let state = "loading";
 let best = Number(localStorage.getItem("chaat-rush-best") || 0);
 let soundOn = localStorage.getItem("chaat-rush-sound") !== "off";
+let masterVolume = clamp(Number(localStorage.getItem("chaat-rush-volume") ?? 90) / 100,0,1);
+let chantEnabled = localStorage.getItem("chaat-rush-chant") !== "off";
 let audioContext = null;
+let masterGainNode = null;
 let audioReady = false;
 let introPlayed = false;
 let game = null;
@@ -91,8 +95,12 @@ const mats = {
   teal:new THREE.MeshStandardMaterial({color:0x19b8aa,roughness:.73}),
   tealDark:new THREE.MeshStandardMaterial({color:0x0e7775,roughness:.8}),
   orange:new THREE.MeshStandardMaterial({color:0xf1a05d,roughness:.72}),
-  skinTeen:new THREE.MeshStandardMaterial({color:0x70442f,roughness:.94}),
-  skinAdult:new THREE.MeshStandardMaterial({color:0x68402f,roughness:.94}),
+  skinTeen:new THREE.MeshStandardMaterial({color:0x70442f,roughness:.82}),
+  skinAdult:new THREE.MeshStandardMaterial({color:0x68402f,roughness:.84}),
+  eyeWhite:new THREE.MeshStandardMaterial({color:0xf3eee3,roughness:.38}),
+  faceDetail:new THREE.MeshStandardMaterial({color:0x241a19,roughness:.78}),
+  shirtGold:new THREE.MeshStandardMaterial({color:0xffcf78,metalness:.16,roughness:.48}),
+  shoeSole:new THREE.MeshStandardMaterial({color:0x17232d,roughness:.88}),
   hair:new THREE.MeshStandardMaterial({color:0x211b20,roughness:.95}),
   jeans:new THREE.MeshStandardMaterial({color:0x273d56,roughness:.92}),
   shoe:new THREE.MeshStandardMaterial({color:0xf0e7d4,roughness:.72}),
@@ -231,15 +239,33 @@ function makeCharacter(options) {
   const shirt=options.skin==="adult"?mats.chaserShirt:mats.teal;
   const legMat=mats.jeans;
   const build=options.build||"slim";
-  const torso=addMesh(root,new THREE.SphereGeometry(1,16,12),shirt,[0,1.15,0],
+  const torso=addMesh(root,new THREE.SphereGeometry(1,24,16),shirt,[0,1.15,0],
     build==="stocky"?[.72,.69,.45]:[.46,.72,.33]);
   rig.torso=torso;
   addMesh(root,new THREE.SphereGeometry(1,12,8),options.skin==="adult"?mats.chaserTrim:mats.tealDark,[0,1.73,.01],
     build==="stocky"?[.52,.2,.37]:[.37,.18,.3]);
-  const head=addMesh(root,new THREE.SphereGeometry(1,16,12),skin,[0,2.05,0],[.34,.39,.33]);
+  const head=addMesh(root,new THREE.SphereGeometry(1,24,16),skin,[0,2.05,0],[.34,.39,.33]);
   rig.head=head;
+  // Expressive face details are placed on the camera-facing side of the head.
+  for(const side of [-1,1]) {
+    addMesh(root,new THREE.SphereGeometry(.052,10,8),mats.eyeWhite,[side*.12,2.105,.298],[.9,1,.36]);
+    addMesh(root,new THREE.SphereGeometry(.025,8,6),mats.faceDetail,[side*.12,2.105,.319],[.85,1,.42]);
+    const brow=makeBox(root,.105,.027,.025,mats.hair,side*.12,2.205,.296);
+    brow.rotation.z=side*.1;
+    addMesh(root,new THREE.SphereGeometry(.075,10,8),skin,[side*.337,2.045,.005],[.42,.7,.55]);
+  }
+  addMesh(root,new THREE.SphereGeometry(.052,10,8),skin,[0,2.005,.326],[.72,.9,.8]);
+  makeBox(root,.105,.018,.018,mats.faceDetail,0,1.925,.309);
+  const frontZ=build==="stocky"?.445:.326;
+  makeBox(root,.34,.19,.045,mats.shirtGold,0,1.34,frontZ);
+  makeBox(root,.23,.035,.05,mats.tealDark,0,1.34,frontZ+.028);
+  makeBox(root,.045,.14,.025,mats.shoe,0,1.34,frontZ+.055);
   // Back hair cap; the chaser has loose medium-long locks at the sides and nape.
-  addMesh(root,new THREE.SphereGeometry(1,14,10),mats.hair,[0,2.27,.035],[.365,.245,.36]);
+  addMesh(root,new THREE.SphereGeometry(1,20,14),mats.hair,[0,2.27,.035],[.365,.245,.36]);
+  if(options.skin!=="adult") {
+    addMesh(root,new THREE.SphereGeometry(.15,12,8),mats.hair,[-.16,2.285,.245],[1,.55,.72]);
+    addMesh(root,new THREE.SphereGeometry(.15,12,8),mats.hair,[.08,2.31,.25],[1,.45,.72]);
+  }
   if(options.skin==="adult") {
     for(const side of [-1,1]) {
       const lock=addMesh(root,new THREE.CapsuleGeometry(.075,.43,3,6),mats.hair,[side*.29,1.91,.1]);
@@ -258,7 +284,8 @@ function makeCharacter(options) {
     root.add(armPivot);
     const upper=makeCylinder(armPivot,.13,.16,.43,skin,0,-.22,0,8);
     upper.rotation.z=side*-.13;
-    addMesh(armPivot,new THREE.SphereGeometry(.115,8,6),skin,[0,-.47,-.03]);
+    addMesh(armPivot,new THREE.SphereGeometry(.115,10,8),skin,[0,-.47,-.03]);
+    makeCylinder(armPivot,.145,.145,.065,mats.shirtGold,0,-.39,.005,10);
     rig.arms.push({pivot:armPivot,side});
   }
   // Legs are separate pivots so the feet alternate naturally.
@@ -268,24 +295,20 @@ function makeCharacter(options) {
     root.add(legPivot);
     makeCylinder(legPivot,.145,.18,.48,legMat,0,-.24,0,9);
     makeBox(legPivot,.31,.15,.48,mats.shoe,0,-.5,-.09);
+    makeBox(legPivot,.315,.045,.49,mats.shoeSole,0,-.585,-.085);
     rig.legs.push({pivot:legPivot,side});
   }
   // Small backpack gives the player a clear silhouette from the chase camera.
   if(options.skin!=="adult") {
-    makeBox(root,.47,.48,.22,mats.orange,0,1.22,.35);
-    makeBox(root,.15,.1,.03,mats.shoe,0,1.26,.48);
+    makeBox(root,.47,.48,.22,mats.orange,0,1.22,-.35);
+    makeBox(root,.15,.1,.03,mats.shoe,0,1.26,-.48);
   } else {
     makeBox(root,.16,.2,.05,mats.chaserTrim,0,1.45,.3);
   }
-  // Fine dark contours give the two characters a hand-inked, sketchbook finish.
-  const inkLineMaterial=new THREE.LineBasicMaterial({color:0x17161a,transparent:true,opacity:.76,depthWrite:false});
-  root.traverse((object)=>{
-    if(!object.isMesh || !object.geometry) return;
-    const edges=new THREE.EdgesGeometry(object.geometry,27);
-    const outline=new THREE.LineSegments(edges,inkLineMaterial);
-    outline.renderOrder=4;
-    object.add(outline);
-  });
+  // A soft contact shadow grounds the character against the road without costly shadow maps.
+  const contactShadow=addMesh(root,new THREE.CircleGeometry(.72,24),new THREE.MeshBasicMaterial({color:0x07101a,transparent:true,opacity:.24,depthWrite:false}),[0,.016,.02]);
+  contactShadow.rotation.x=-Math.PI/2;
+  contactShadow.scale.set(1.18,.72,1);
   world.add(root);
   return rig;
 }
@@ -377,9 +400,57 @@ function ensureAudio() {
   if(!soundOn) return;
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
   if(!AudioCtx) return;
-  if(!audioContext) audioContext=new AudioCtx();
+  if(!audioContext) {
+    audioContext=new AudioCtx();
+    masterGainNode=audioContext.createGain();
+    masterGainNode.gain.value=masterVolume;
+    masterGainNode.connect(audioContext.destination);
+  }
   if(audioContext.state==="suspended") audioContext.resume().catch(()=>{});
   audioReady=true;
+}
+function setMasterVolume(value) {
+  masterVolume=clamp(Number(value)/100,0,1);
+  localStorage.setItem("chaat-rush-volume",String(Math.round(masterVolume*100)));
+  if(masterGainNode&&audioContext) masterGainNode.gain.setTargetAtTime(masterVolume,audioContext.currentTime,.025);
+  if(ui.volumeValue) ui.volumeValue.textContent=Math.round(masterVolume*100)+"%";
+}
+function stopChant() {
+  if("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+function speakChant() {
+  if(!soundOn||!chantEnabled||!("speechSynthesis" in window)) return;
+  const speech=window.speechSynthesis;
+  speech.cancel();
+  const utterance=new SpeechSynthesisUtterance("Abbas Bhai ki Chaat Lo!");
+  const voices=speech.getVoices();
+  const voice=voices.find(item=>/^ur(-|$)/i.test(item.lang))
+    ||voices.find(item=>/^hi(-|$)/i.test(item.lang))
+    ||voices.find(item=>/en-IN/i.test(item.lang));
+  if(voice) {utterance.voice=voice;utterance.lang=voice.lang;}
+  else utterance.lang="en-IN";
+  utterance.rate=.94;
+  utterance.pitch=1.04;
+  utterance.volume=masterVolume;
+  speech.speak(utterance);
+}
+function playSweep(from,to,duration=.2,volume=.035,type="sawtooth") {
+  if(!soundOn||!audioReady||!audioContext) return;
+  const start=audioContext.currentTime;
+  const osc=audioContext.createOscillator(),gain=audioContext.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(from,start);
+  osc.frequency.exponentialRampToValueAtTime(to,start+duration);
+  gain.gain.setValueAtTime(.0001,start);
+  gain.gain.exponentialRampToValueAtTime(volume,start+.012);
+  gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  osc.connect(gain);gain.connect(masterGainNode||audioContext.destination);
+  osc.start(start);osc.stop(start+duration+.02);
+}
+function playRunBeat(step) {
+  if(!soundOn||!audioReady) return;
+  if(step%4===0) note(92,.12,"sine",.045);
+  else note(164,.075,"triangle",.018);
+  if(step%2===1) note(1380,.035,"square",.006);
 }
 function note(freq,duration=.16,type="triangle",volume=.035,delay=0) {
   if(!soundOn||!audioContext||!audioReady) return;
@@ -389,7 +460,7 @@ function note(freq,duration=.16,type="triangle",volume=.035,delay=0) {
   gain.gain.setValueAtTime(.0001,start);
   gain.gain.exponentialRampToValueAtTime(volume,start+.015);
   gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
-  osc.connect(gain);gain.connect(audioContext.destination);
+  osc.connect(gain);gain.connect(masterGainNode||audioContext.destination);
   osc.start(start);osc.stop(start+duration+.025);
 }
 function playIntroMusic() {
@@ -407,6 +478,9 @@ function soundEffect(kind) {
   if(kind==="hit") {note(165,.25,"sawtooth",.04);note(82,.32,"sine",.05,.07);}
   if(kind==="move") note(300,.06,"sine",.017);
   if(kind==="board") {note(330,.17,"triangle",.04);note(520,.22,"triangle",.03,.08);}
+  if(kind==="slide") playSweep(720,180,.24,.03,"sawtooth");
+  if(kind==="land") {note(105,.11,"sine",.055);note(72,.14,"triangle",.018,.035);}
+  if(kind==="start") {note(392,.12,"triangle",.035);note(587,.15,"triangle",.035,.11);note(784,.2,"sine",.04,.22);}
 }
 window.addEventListener("pointerdown",ensureAudio,{once:true,passive:true});
 
@@ -416,7 +490,7 @@ function resetGame() {
     lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.78,jumpVelocity:0,jumpHeight:0,
     slideRemaining:0,spawnTimer:.8,speed:22,distance:0,score:0,coins:0,
     magnetTime:0,multiplierTime:0,shield:false,boardCharges:1,boardTime:0,
-    boardActive:false,runTime:0,shake:0,hitFlash:0,pattern:0
+    boardActive:false,runTime:0,shake:0,hitFlash:0,pattern:0,chantTimer:0,musicTimer:.18,musicStep:0
   };
   playerRig.root.position.set(0,0,PLAYER_Z);
   playerRig.root.scale.set(1,1,1);
@@ -439,6 +513,7 @@ function updateHud() {
   ui.power.textContent=powers.join("  •  ");
 }
 function showMenu() {
+  stopChant();
   state="menu";
   ui.menu.classList.remove("hidden");ui.pause.classList.add("hidden");
   ui.over.classList.add("hidden");ui.intro.classList.add("hidden");ui.ready.classList.add("hidden");
@@ -457,20 +532,28 @@ function startGame() {
 }
 function beginRun() {
   if(state!=="ready") return;
+  ensureAudio();
   state="running";ui.ready.classList.add("hidden");
   updateHud();
   previousTime=performance.now();
+  game.chantTimer=10.8;game.musicTimer=.08;
+  soundEffect("start");
+  speakChant();
 }
 function pauseGame() {
   if(state!=="running") return;
+  stopChant();
   state="paused";ui.pause.classList.remove("hidden");ui.swipeHint.classList.add("hidden");
 }
 function resumeGame() {
   if(state!=="paused") return;
+  ensureAudio();
   state="running";ui.pause.classList.add("hidden");previousTime=performance.now();
+  game.chantTimer=10.8;speakChant();
 }
 function finishGame() {
   if(state!=="running") return;
+  stopChant();
   state="over";soundEffect("hit");
   game.score=Math.floor(game.distance*2)+game.coins*50*(game.multiplierTime>0?2:1);
   if(game.score>best){best=game.score;localStorage.setItem("chaat-rush-best",String(best));}
@@ -509,6 +592,7 @@ function slide() {
   }
   game.slideRemaining=.76;
   playerRig.root.scale.y=.62;
+  soundEffect("slide");
 }
 function useBoard() {
   if(state!=="running"||game.boardCharges<1||game.boardActive) return;
@@ -580,18 +664,34 @@ $("restartButton").addEventListener("click",startGame);
 $("resumeButton").addEventListener("click",resumeGame);
 $("pauseButton").addEventListener("click",pauseGame);
 $("homeButton").addEventListener("click",showMenu);
-$("soundButton").textContent=soundOn?"♫":"♪";
-$("soundButton").addEventListener("click",()=>{
+ui.volumeSlider.value=String(Math.round(masterVolume*100));
+ui.volumeValue.textContent=Math.round(masterVolume*100)+"%";
+ui.soundButton.textContent=soundOn?"♫":"♪";
+ui.soundButton.setAttribute("aria-pressed",String(soundOn));
+ui.chantButton.textContent=chantEnabled?"Aa":"A̸a";
+ui.chantButton.setAttribute("aria-pressed",String(chantEnabled));
+ui.chantButton.setAttribute("aria-label",chantEnabled?"Mute Abbas Bhai chant":"Enable Abbas Bhai chant");
+ui.volumeSlider.addEventListener("input",(event)=>setMasterVolume(event.target.value));
+ui.soundButton.addEventListener("click",()=>{
   soundOn=!soundOn;localStorage.setItem("chaat-rush-sound",soundOn?"on":"off");
-  $("soundButton").textContent=soundOn?"♫":"♪";
-  $("soundButton").setAttribute("aria-label",soundOn?"Mute sound":"Enable sound");
-  if(soundOn){ensureAudio();note(660,.12,"triangle",.04);}
+  ui.soundButton.textContent=soundOn?"♫":"♪";
+  ui.soundButton.setAttribute("aria-pressed",String(soundOn));
+  if(!soundOn)stopChant();
+  else {ensureAudio();note(660,.12,"triangle",.04);if(state==="running")speakChant();}
+});
+ui.chantButton.addEventListener("click",()=>{
+  chantEnabled=!chantEnabled;localStorage.setItem("chaat-rush-chant",chantEnabled?"on":"off");
+  ui.chantButton.textContent=chantEnabled?"Aa":"A̸a";
+  ui.chantButton.setAttribute("aria-pressed",String(chantEnabled));
+  ui.chantButton.setAttribute("aria-label",chantEnabled?"Mute Abbas Bhai chant":"Enable Abbas Bhai chant");
+  if(!chantEnabled)stopChant();
+  else if(state==="running")speakChant();
 });
 $("fullscreenButton").addEventListener("click",async()=>{
   try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen?.();else await document.exitFullscreen?.();}
   catch{/* Fullscreen is optional in some browsers. */}
 });
-document.addEventListener("visibilitychange",()=>{if(document.hidden&&state==="running")pauseGame();});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){stopChant();if(state==="running")pauseGame();}});
 window.addEventListener("blur",()=>{if(state==="running")pauseGame();});
 
 function collectCoin(entity) {
@@ -661,7 +761,12 @@ function updateScenery(dt) {
 }
 function updateGame(dt) {
   if(state!=="running"||!game)return;
-  game.runTime+=dt;game.speed=Math.min(35,22+game.runTime*.22);
+  game.runTime+=dt;
+  game.musicTimer-=dt;
+  if(game.musicTimer<=0){playRunBeat(game.musicStep++);game.musicTimer=.48;}
+  game.chantTimer-=dt;
+  if(game.chantTimer<=0){speakChant();game.chantTimer=10.8;}
+  game.speed=Math.min(35,22+game.runTime*.22);
   scenerySpeed=game.speed;
   game.distance+=game.speed*dt*.42;
   game.spawnTimer-=dt;
@@ -674,6 +779,7 @@ function updateGame(dt) {
     game.jumpRemaining=Math.max(0,game.jumpRemaining-dt);
     if(game.jumpHeight<=0&&game.jumpVelocity<0){
       game.jumpHeight=0;game.jumpVelocity=0;game.jumpRemaining=0;
+      soundEffect("land");
     }
   } else {game.jumpHeight=0;game.jumpVelocity=0;}
   playerRig.root.position.y=game.jumpHeight;
