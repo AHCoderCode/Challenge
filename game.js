@@ -158,6 +158,7 @@ function addLights() {
   sun.shadow.camera.bottom=-20;
   sun.shadow.bias=-.00018;
   sun.shadow.normalBias=.025;
+  sun.shadow.camera.updateProjectionMatrix();
   scene.add(sun);
   const fill=new THREE.DirectionalLight(0x93d8f0,.65);
   fill.position.set(8,9,-15);
@@ -361,8 +362,15 @@ function animateCharacter(rig,time,phase=0) {
   rig.legs.forEach((leg,index) => { leg.pivot.rotation.x=swing*(index===0?1:-1)*.62; });
   rig.arms.forEach((arm,index) => { arm.pivot.rotation.x=-swing*(index===0?1:-1)*.48; });
   rig.root.rotation.z=Math.sin(time*5+phase)*.025;
-  if(rig.torso) rig.torso.rotation.x=Math.sin(time*11+phase)*.018;
-  if(rig.head) rig.head.rotation.z=Math.sin(time*5.5+phase)*.018;
+  const runBob=Math.abs(Math.sin(time*11+phase))*.045;
+  if(rig.torso) {
+    rig.torso.position.y=1.15+runBob;
+    rig.torso.rotation.x=Math.sin(time*11+phase)*.018;
+  }
+  if(rig.head) {
+    rig.head.position.y=2.05+runBob*.72;
+    rig.head.rotation.z=Math.sin(time*5.5+phase)*.018;
+  }
 }
 function buildPlayer() {
   playerRig=makeCharacter({skin:"teen",build:"stocky"});
@@ -380,6 +388,9 @@ function buildPlayer() {
   chaserRig=makeCharacter({skin:"adult",build:"slim"});
   chaserRig.root.scale.setScalar(1.12);
   chaserRig.root.position.set(-1.35,0,4.2);
+  for(const rig of [playerRig,chaserRig]) rig.root.traverse(object=>{
+    if(object.isMesh){object.castShadow=renderer.shadowMap.enabled;object.receiveShadow=renderer.shadowMap.enabled;}
+  });
 }
 function createObstacle(type,lane,z) {
   const group=new THREE.Group();
@@ -474,7 +485,8 @@ function createObstacle(type,lane,z) {
   under.rotation.x=-Math.PI/2;
   group.traverse(object=>{if(object.isMesh)object.castShadow=renderer.shadowMap.enabled;});
   world.add(group);
-  const entity={kind:"obstacle",type,lane,group,previousZ:z,resolved:false};
+  const halfDepth={crate:.5,barrier:.36,beam:.18,cones:.24,van:2.2}[type]||.5;
+  const entity={kind:"obstacle",type,lane,group,previousZ:z,resolved:false,halfDepth};
   entities.push(entity);
 }
 function createCoin(lane,z) {
@@ -505,7 +517,7 @@ function spawnPattern() {
   const obstacleTypes=["crate","barrier","beam"];
   if(level>=2) obstacleTypes.push("cones");
   if(level>=3) obstacleTypes.push("van");
-  const trainChance=level<3?0:Math.min(.34,.12+(level-3)*.055);
+  const trainChance=level<2?0:Math.min(.36,.1+(level-2)*.065);
   const firstType=Math.random()<trainChance?"train":pick(obstacleTypes);
   createObstacle(firstType,blocked[0],SPAWN_Z);
   const secondChance=Math.min(.68,.2+level*.075);
@@ -633,7 +645,7 @@ function resetGame() {
     lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.85,jumpVelocity:0,jumpHeight:0,
     slideRemaining:0,spawnTimer:.8,speed:22,distance:0,score:0,coins:0,
     magnetTime:0,multiplierTime:0,shield:false,boardCharges:1,boardTime:0,
-    boardActive:false,trainRide:null,trainRideHeight:0,level:1,runTime:0,shake:0,hitFlash:0,pattern:0,musicTimer:.18,musicStep:0
+    boardActive:false,trainRide:null,trainRideHeight:0,fallHeight:0,fallVelocity:0,level:1,runTime:0,shake:0,hitFlash:0,pattern:0,musicTimer:.18,musicStep:0
   };
   playerRig.root.position.set(0,0,PLAYER_Z);
   playerRig.root.scale.set(1,1,1);
@@ -715,6 +727,8 @@ function moveLane(direction) {
   const next=clamp(game.lane+direction,0,2);
   if(next!==game.lane){
     if(game.trainRide&&game.trainRide.lane!==next) {
+      game.fallHeight=game.trainRideHeight;
+      game.fallVelocity=0;
       game.trainRide=null;
       game.trainRideHeight=0;
     }
@@ -895,6 +909,8 @@ function updateEntities(dt) {
           } else if(localZ<=entity.rampStart&&localZ>=-entity.halfLength) {
             game.trainRideHeight=entity.roofY;
           } else if(localZ < -entity.halfLength) {
+            game.fallHeight=game.trainRideHeight;
+            game.fallVelocity=0;
             game.trainRide=null;
             game.trainRideHeight=0;
           }
@@ -911,22 +927,35 @@ function updateEntities(dt) {
           }
         }
       } else if(game.trainRide===entity) {
+        game.fallHeight=game.trainRideHeight;
+        game.fallVelocity=0;
         game.trainRide=null;
         game.trainRideHeight=0;
       }
-    } else if(previous<0&&current>=0&&entity.lane===game.lane) {
-      collide(entity);
+    } else if(entity.kind==="obstacle"&&entity.lane===game.lane) {
+      const halfDepth=entity.halfDepth||.5;
+      if(previous+halfDepth<0&&current+halfDepth>=0) collide(entity);
     }
     if(state!=="running") break;
     const passedTrain=current>22&&entity.kind==="train";
     const passedObstacle=current>12&&entity.kind!=="train";
     if(entity.resolved||passedTrain||passedObstacle) {
-      if(game.trainRide===entity){game.trainRide=null;game.trainRideHeight=0;}
+      if(game.trainRide===entity) {
+        game.fallHeight=game.trainRideHeight;
+        game.fallVelocity=0;
+        game.trainRide=null;
+        game.trainRideHeight=0;
+      }
       removeEntity(entity);
       entities.splice(index,1);
     }
   }
-  playerRig.root.position.y=(game.trainRide?game.trainRideHeight:0)+game.jumpHeight;
+  if(!game.trainRide&&game.fallHeight>0) {
+    game.fallVelocity-=25*dt;
+    game.fallHeight=Math.max(0,game.fallHeight+game.fallVelocity*dt);
+    if(game.fallHeight===0) game.fallVelocity=0;
+  }
+  playerRig.root.position.y=(game.trainRide?game.trainRideHeight:game.fallHeight)+game.jumpHeight;
 }
 function updateScenery(dt) {
   const move=scenerySpeed*dt;
