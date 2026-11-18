@@ -110,7 +110,7 @@ const mats = {
   coin:new THREE.MeshStandardMaterial({color:0xffce55,metalness:.7,roughness:.25,emissive:0xa76b18,emissiveIntensity:.16}),
   teal:new THREE.MeshStandardMaterial({color:0x19b8aa,roughness:.73}),
   tealDark:new THREE.MeshStandardMaterial({color:0x0e7775,roughness:.8}),
-  playerBlack:new THREE.MeshStandardMaterial({color:0x17191f,roughness:.88}),
+  playerBlack:new THREE.MeshPhysicalMaterial({color:0x17191f,roughness:.82,metalness:.02,clearcoat:.24,clearcoatRoughness:.64,sheen:.28,sheenRoughness:.88}),
   orange:new THREE.MeshStandardMaterial({color:0xf1a05d,roughness:.72}),
   skinTeen:new THREE.MeshPhysicalMaterial({color:0x593522,roughness:.68,metalness:0,clearcoat:.09,clearcoatRoughness:.62}),
   skinAdult:new THREE.MeshStandardMaterial({color:0x68402f,roughness:.84}),
@@ -305,6 +305,11 @@ function makeCharacter(options) {
   makeBox(root,.34,.19,.045,mats.shirtGold,0,1.34,frontZ);
   makeBox(root,.23,.035,.05,mats.tealDark,0,1.34,frontZ+.028);
   makeBox(root,.045,.14,.025,mats.shoe,0,1.34,frontZ+.055);
+  if(options.skin!=="adult") {
+    makeBox(root,.065,.42,.035,mats.runnerTeal,0,1.23,.615);
+    makeBox(root,.52,.045,.035,mats.runnerGold,0,1.52,.535);
+    makeBox(root,.42,.035,.03,mats.runnerGold,0,.86,.565);
+  }
   // Close-cropped black hair for the runner; the chaser keeps longer locks.
   addMesh(root,new THREE.SphereGeometry(1,24,16),mats.hair,[0,2.27,.035],[.365,.16,.36]);
   if(options.skin==="adult") {
@@ -322,7 +327,11 @@ function makeCharacter(options) {
     armPivot.position.set(side*(build==="stocky"?.61:.4),1.55,0);
     root.add(armPivot);
     const armRadius=build==="stocky"?.18:.13;
-    const upper=makeCylinder(armPivot,armRadius,armRadius+.03,.43,skin,0,-.22,0,10);
+    if(options.skin!=="adult") {
+      makeCylinder(armPivot,armRadius+.055,armRadius+.035,.2,mats.playerBlack,0,-.07,0,12);
+      makeCylinder(armPivot,armRadius+.06,armRadius+.04,.045,mats.runnerTeal,0,-.16,0,12);
+    }
+    const upper=makeCylinder(armPivot,armRadius,armRadius+.03,.43,skin,0,-.22,0,12);
     upper.rotation.z=side*-.13;
     addMesh(armPivot,new THREE.SphereGeometry(build==="stocky"?.15:.115,12,10),skin,[0,-.47,-.03]);
     makeCylinder(armPivot,.145,.145,.065,mats.shirtGold,0,-.39,.005,10);
