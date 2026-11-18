@@ -44,7 +44,7 @@ let lastTap = 0;
 let qualityScale = 1;
 let perfTime = 0, perfTotal = 0, perfFrames = 0;
 let scene, camera, renderer, world, playerRig, chaserRig;
-let roadMarkers = [], buildings = [], lamps = [], entities = [], speedStreaks = [];
+let roadMarkers = [], railSleepers = [], buildings = [], lamps = [], entities = [], speedStreaks = [];
 let streaksGroup;
 let resizeObserver;
 const RUNNER_FACE_DATA_URL = "data:image/webp;base64,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";
@@ -59,7 +59,10 @@ try {
 }
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
+renderer.toneMappingExposure = 1.18;
+const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+renderer.shadowMap.enabled = !coarsePointer;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.matchMedia("(max-width: 700px)").matches ? 1.25 : 1.65));
 renderer.setSize(window.innerWidth,window.innerHeight,false);
 renderer.shadowMap.enabled = false;
@@ -67,8 +70,8 @@ renderer.setClearColor(0x91c8cf,1);
 canvas.addEventListener("contextmenu",(event) => event.preventDefault());
 
 scene = new THREE.Scene();
-scene.background = new THREE.Color(0x83b8c2);
-scene.fog = new THREE.Fog(0x83b8c2,38,155);
+scene.background = new THREE.Color(0x9ccbd1);
+scene.fog = new THREE.Fog(0x9ccbd1,52,185);
 camera = new THREE.PerspectiveCamera(59,window.innerWidth/window.innerHeight,.1,260);
 camera.position.set(0,5.5,10.5);
 camera.lookAt(0,1,-15);
@@ -85,7 +88,18 @@ const mats = {
   crateEdge:new THREE.MeshStandardMaterial({color:0xe3b477,roughness:.78}),
   barrier:new THREE.MeshStandardMaterial({color:0xe0b74e,roughness:.72}),
   red:new THREE.MeshStandardMaterial({color:0xc9574d,roughness:.75}),
-  train:new THREE.MeshStandardMaterial({color:0x537f8a,metalness:.2,roughness:.62}),
+  train:new THREE.MeshPhysicalMaterial({color:0x537f8a,metalness:.38,roughness:.34,clearcoat:.72,clearcoatRoughness:.24}),
+  trainBody:new THREE.MeshPhysicalMaterial({color:0x315e69,metalness:.42,roughness:.3,clearcoat:.8,clearcoatRoughness:.22}),
+  trainRoof:new THREE.MeshStandardMaterial({color:0x243844,metalness:.48,roughness:.42}),
+  trainGlass:new THREE.MeshPhysicalMaterial({color:0x9ad4df,metalness:.18,roughness:.12,clearcoat:1,clearcoatRoughness:.08}),
+  trainWheel:new THREE.MeshStandardMaterial({color:0x1c252d,metalness:.74,roughness:.38}),
+  trainRamp:new THREE.MeshStandardMaterial({color:0x65757b,metalness:.42,roughness:.5}),
+  trackSteel:new THREE.MeshStandardMaterial({color:0x73828a,metalness:.82,roughness:.28}),
+  sleeper:new THREE.MeshStandardMaterial({color:0x514d47,roughness:.94}),
+  runnerTeal:new THREE.MeshStandardMaterial({color:0x12a9a7,roughness:.5,metalness:.04}),
+  runnerGold:new THREE.MeshStandardMaterial({color:0xf3c66f,roughness:.42,metalness:.18}),
+  warningStripe:new THREE.MeshStandardMaterial({color:0xf5c44e,roughness:.64}),
+  cone:new THREE.MeshStandardMaterial({color:0xf4773f,roughness:.68}),
   window:new THREE.MeshStandardMaterial({color:0xbbe6e7,emissive:0x35596a,emissiveIntensity:.18,metalness:.15,roughness:.28}),
   buildingA:new THREE.MeshStandardMaterial({color:0x465d68,roughness:.92}),
   buildingB:new THREE.MeshStandardMaterial({color:0x6d7775,roughness:.95}),
@@ -98,13 +112,13 @@ const mats = {
   tealDark:new THREE.MeshStandardMaterial({color:0x0e7775,roughness:.8}),
   playerBlack:new THREE.MeshStandardMaterial({color:0x17191f,roughness:.88}),
   orange:new THREE.MeshStandardMaterial({color:0xf1a05d,roughness:.72}),
-  skinTeen:new THREE.MeshStandardMaterial({color:0x593522,roughness:.82}),
+  skinTeen:new THREE.MeshPhysicalMaterial({color:0x593522,roughness:.68,metalness:0,clearcoat:.09,clearcoatRoughness:.62}),
   skinAdult:new THREE.MeshStandardMaterial({color:0x68402f,roughness:.84}),
   eyeWhite:new THREE.MeshStandardMaterial({color:0xf3eee3,roughness:.38}),
   faceDetail:new THREE.MeshStandardMaterial({color:0x241a19,roughness:.78}),
   shirtGold:new THREE.MeshStandardMaterial({color:0xffcf78,metalness:.16,roughness:.48}),
   shoeSole:new THREE.MeshStandardMaterial({color:0x17232d,roughness:.88}),
-  hair:new THREE.MeshStandardMaterial({color:0x09090c,roughness:.95}),
+  hair:new THREE.MeshStandardMaterial({color:0x09090c,roughness:.78}),
   jeans:new THREE.MeshStandardMaterial({color:0x273d56,roughness:.92}),
   shoe:new THREE.MeshStandardMaterial({color:0xf0e7d4,roughness:.72}),
   chaserShirt:new THREE.MeshStandardMaterial({color:0x385f82,roughness:.86}),
@@ -134,6 +148,16 @@ function addLights() {
   scene.add(new THREE.HemisphereLight(0xdaf5f4,0x52605a,2.0));
   const sun=new THREE.DirectionalLight(0xffe4ba,2.25);
   sun.position.set(-8,18,8);
+  sun.castShadow=renderer.shadowMap.enabled;
+  sun.shadow.mapSize.set(1024,1024);
+  sun.shadow.camera.near=.5;
+  sun.shadow.camera.far=90;
+  sun.shadow.camera.left=-24;
+  sun.shadow.camera.right=24;
+  sun.shadow.camera.top=32;
+  sun.shadow.camera.bottom=-20;
+  sun.shadow.bias=-.00018;
+  sun.shadow.normalBias=.025;
   scene.add(sun);
   const fill=new THREE.DirectionalLight(0x93d8f0,.65);
   fill.position.set(8,9,-15);
@@ -154,6 +178,19 @@ function buildRoad() {
     for(let i=0;i<26;i++) {
       const stripe=addMesh(world,stripeGeo,mats.roadLine,[laneX,-.045,-198+i*8]);
       roadMarkers.push(stripe);
+    }
+  }
+  // Continuous steel rails and regularly spaced sleepers make trains read as real rolling stock.
+  const railGeo=new THREE.CylinderGeometry(.065,.065,230,10);
+  for(const laneX of LANES) {
+    for(const railOffset of [-.94,.94]) {
+      const rail=addMesh(world,railGeo,mats.trackSteel,[laneX+railOffset,.025,-95]);
+      rail.rotation.x=Math.PI/2;
+    }
+    const sleeperGeo=new THREE.BoxGeometry(2.9,.11,.34);
+    for(let i=0;i<46;i++) {
+      const sleeper=addMesh(world,sleeperGeo,mats.sleeper,[laneX,-.005,-218+i*5]);
+      railSleepers.push(sleeper);
     }
   }
   // Side road reflectors create a sense of speed without heavy post-processing.
@@ -240,15 +277,18 @@ function makeCharacter(options) {
   const rig={root,legs:[],arms:[],torso:null,head:null,options};
   const skin=options.skin==="adult"?mats.skinAdult:mats.skinTeen;
   const shirt=options.skin==="adult"?mats.chaserShirt:mats.playerBlack;
-  const legMat=mats.jeans;
+  const legMat=options.skin==="adult"?mats.jeans:mats.playerBlack;
   const build=options.build||"slim";
-  const torso=addMesh(root,new THREE.SphereGeometry(1,32,24),shirt,[0,1.15,.015],
-    build==="stocky"?[.82,.78,.55]:[.46,.72,.33]);
+  const torso=addMesh(root,new THREE.SphereGeometry(1,48,32),shirt,[0,1.15,.015],
+    build==="stocky"?[.84,.8,.57]:[.46,.72,.33]);
   rig.torso=torso;
-  if(build==="stocky") addMesh(root,new THREE.SphereGeometry(1,32,24),shirt,[0,.96,.085],[.78,.47,.55]);
+  if(build==="stocky") {
+    addMesh(root,new THREE.SphereGeometry(1,48,32),shirt,[0,.96,.09],[.8,.48,.56]);
+    addMesh(root,new THREE.SphereGeometry(1,32,24),shirt,[0,1.42,.015],[.69,.42,.48]);
+  }
   addMesh(root,new THREE.SphereGeometry(1,12,8),options.skin==="adult"?mats.chaserTrim:mats.tealDark,[0,1.73,.01],
     build==="stocky"?[.52,.2,.37]:[.37,.18,.3]);
-  const head=addMesh(root,new THREE.SphereGeometry(1,24,16),skin,[0,2.05,0],[.34,.39,.33]);
+  const head=addMesh(root,new THREE.SphereGeometry(1,48,32),skin,[0,2.05,0],[.36,.405,.345]);
   rig.head=head;
   // Expressive face details are placed on the camera-facing side of the head.
   for(const side of [-1,1]) {
@@ -293,8 +333,13 @@ function makeCharacter(options) {
     legPivot.position.set(side*(build==="stocky"?.27:.17),.78,0);
     root.add(legPivot);
     makeCylinder(legPivot,.145,.18,.48,legMat,0,-.24,0,9);
-    makeBox(legPivot,.31,.15,.48,mats.shoe,0,-.5,-.09);
-    makeBox(legPivot,.315,.045,.49,mats.shoeSole,0,-.585,-.085);
+    const footwear=options.skin==="adult"?mats.shoe:mats.playerBlack;
+    makeBox(legPivot,.34,.18,.52,footwear,0,-.5,-.09);
+    makeBox(legPivot,.35,.055,.53,mats.shoeSole,0,-.592,-.085);
+    if(options.skin!=="adult") {
+      makeBox(legPivot,.22,.035,.025,mats.runnerTeal,0,-.47,.18);
+      makeBox(legPivot,.12,.025,.02,mats.runnerGold,0,-.435,.195);
+    }
     rig.legs.push({pivot:legPivot,side});
   }
   // Small backpack gives the player a clear silhouette from the chase camera.
@@ -316,6 +361,8 @@ function animateCharacter(rig,time,phase=0) {
   rig.legs.forEach((leg,index) => { leg.pivot.rotation.x=swing*(index===0?1:-1)*.62; });
   rig.arms.forEach((arm,index) => { arm.pivot.rotation.x=-swing*(index===0?1:-1)*.48; });
   rig.root.rotation.z=Math.sin(time*5+phase)*.025;
+  if(rig.torso) rig.torso.rotation.x=Math.sin(time*11+phase)*.018;
+  if(rig.head) rig.head.rotation.z=Math.sin(time*5.5+phase)*.018;
 }
 function buildPlayer() {
   playerRig=makeCharacter({skin:"teen",build:"stocky"});
@@ -350,14 +397,82 @@ function createObstacle(type,lane,z) {
     makeBox(group,.18,1.85,.18,mats.metal,.78,.93,0);
     makeBox(group,1.86,.27,.34,mats.red,0,1.72,0);
     makeBox(group,1.75,.055,.36,mats.barrier,0,1.72,.02);
-  } else {
-    makeBox(group,1.95,2.25,2.7,mats.train,0,1.12,0);
-    makeBox(group,1.98,.18,2.72,mats.orange,0,1.94,0);
-    for(let i=0;i<3;i++) makeBox(group,.43,.6,.06,mats.window,-.62+i*.62,1.42,1.37);
-    makeBox(group,1.65,.12,.06,mats.metal,0,.55,1.39);
+  } else if(type==="cones") {
+    for(let i=0;i<3;i++) {
+      const x=(i-1)*.56;
+      makeBox(group,.48,.09,.48,mats.metal,x,.045,0);
+      const cone=addMesh(group,new THREE.ConeGeometry(.2,.82,16),mats.cone,[x,.49,0]);
+      cone.castShadow=renderer.shadowMap.enabled;
+      makeBox(group,.33,.07,.34,mats.warningStripe,x,.25,.01);
+    }
+  } else if(type==="van") {
+    makeBox(group,2.25,1.55,4.4,mats.trainBody,0,.92,0);
+    makeBox(group,2.18,.12,4.25,mats.runnerGold,0,.42,0);
+    makeBox(group,2.08,.7,1.1,mats.trainGlass,0,1.58,-1.42);
+    for(const side of [-1,1]) {
+      for(let i=0;i<2;i++) makeBox(group,.045,.58,.8,mats.trainGlass,side*1.14,1.15,-.65+i*1.6);
+      for(const wheelZ of [-1.45,1.45]) {
+        const wheel=addMesh(group,new THREE.CylinderGeometry(.34,.34,.16,16),mats.trainWheel,[side*1.08,.33,wheelZ]);
+        wheel.rotation.z=Math.PI/2;
+      }
+    }
+    makeBox(group,2.3,.16,.18,mats.metal,0,.32,2.22);
+  } else if(type==="train") {
+    const carCenters=[-6.15,6.15];
+    for(const carZ of carCenters) {
+      makeBox(group,2.82,.34,12.4,mats.trainRoof,0,.29,carZ);
+      makeBox(group,2.78,1.58,12.3,mats.trainBody,0,.99,carZ);
+      makeBox(group,2.82,.12,12.45,mats.runnerGold,0,1.82,carZ);
+      makeBox(group,2.5,.09,12.0,mats.trainRoof,0,1.91,carZ);
+      for(const side of [-1,1]) {
+        makeBox(group,.055,.16,12.15,mats.warningStripe,side*1.405,.67,carZ);
+        for(const windowZ of [-4.3,-1.55,1.55,4.3]) {
+          makeBox(group,.06,.62,1.7,mats.trainGlass,side*1.415,1.27,carZ+windowZ);
+          makeBox(group,.075,.045,1.78,mats.trainRoof,side*1.43,1.61,carZ+windowZ);
+        }
+        for(const doorZ of [-2.9,2.9]) {
+          makeBox(group,.065,.95,.98,mats.trainRoof,side*1.425,1.05,carZ+doorZ);
+          makeBox(group,.08,.075,.12,mats.runnerGold,side*1.47,.76,carZ+doorZ+.36);
+        }
+        for(const wheelZ of [-4.7,4.7]) {
+          const wheel=addMesh(group,new THREE.CylinderGeometry(.31,.31,.19,18),mats.trainWheel,[side*1.34,.32,carZ+wheelZ]);
+          wheel.rotation.z=Math.PI/2;
+          const hub=addMesh(group,new THREE.CylinderGeometry(.105,.105,.205,14),mats.trackSteel,[side*1.34,.32,carZ+wheelZ]);
+          hub.rotation.z=Math.PI/2;
+        }
+      }
+      for(const ventZ of [-3.4,0,3.4]) {
+        makeBox(group,.66,.09,.95,mats.trainRoof,0,2.0,carZ+ventZ);
+        makeBox(group,.45,.035,.68,mats.metal,0,2.06,carZ+ventZ);
+      }
+    }
+    // Front cab glazing, lamps and the coupling between the two carriages.
+    makeBox(group,2.1,.58,.06,mats.trainGlass,0,1.46,12.36);
+    makeBox(group,2.75,.2,.32,mats.trainRoof,0,.35,12.45);
+    for(const side of [-1,1]) {
+      const lamp=addMesh(group,new THREE.SphereGeometry(.14,16,12),mats.lamp,[side*.92,.66,12.43]);
+      lamp.material=mats.lamp;
+      makeBox(group,.12,.28,.08,mats.warningStripe,side*1.16,1.07,12.42);
+    }
+    makeBox(group,.72,.35,1.25,mats.metal,0,.38,0);
+    // A sloped boarding ramp: low at the incoming end, level with the train roof at the far end.
+    const ramp=makeBox(group,2.62,.12,6.35,mats.trainRamp,0,.93,15.25);
+    ramp.rotation.x=Math.atan2(1.78,6.35);
+    for(let stripe=-1;stripe<=1;stripe++) {
+      const marking=makeBox(group,.075,.035,6.05,mats.warningStripe,stripe*.82,.99,15.25);
+      marking.rotation.x=ramp.rotation.x;
+    }
+    const entity={kind:"train",type,lane,group,previousZ:z,resolved:false,rampStart:12.1,rampEnd:18.4,halfLength:12.4,roofY:1.88};
+    group.traverse(object=>{if(object.isMesh)object.castShadow=renderer.shadowMap.enabled;});
+    const under=addMesh(group,new THREE.CircleGeometry(1.05,18),new THREE.MeshBasicMaterial({color:0x0a1119,transparent:true,opacity:.28,depthWrite:false}),[0,.018,0]);
+    under.rotation.x=-Math.PI/2;
+    world.add(group);
+    entities.push(entity);
+    return;
   }
-  const under=addMesh(group,new THREE.CircleGeometry(.72,14),new THREE.MeshBasicMaterial({color:0x0a1119,transparent:true,opacity:.25}),[0,.015,0]);
+  const under=addMesh(group,new THREE.CircleGeometry(.72,14),new THREE.MeshBasicMaterial({color:0x0a1119,transparent:true,opacity:.25,depthWrite:false}),[0,.015,0]);
   under.rotation.x=-Math.PI/2;
+  group.traverse(object=>{if(object.isMesh)object.castShadow=renderer.shadowMap.enabled;});
   world.add(group);
   const entity={kind:"obstacle",type,lane,group,previousZ:z,resolved:false};
   entities.push(entity);
@@ -384,14 +499,24 @@ function createPower(type,lane,z) {
   entities.push({kind:"power",type,lane,group,previousZ:z,resolved:false,phase:Math.random()*Math.PI*2});
 }
 function spawnPattern() {
+  const level=game.level||1;
   const safeLane=Math.floor(Math.random()*3);
-  const blocked=[0,1,2].filter((lane)=>lane!==safeLane);
-  createObstacle(pick(["crate","barrier","beam","train"]),blocked[0],SPAWN_Z);
-  if(Math.random()>.48) createObstacle(pick(["crate","barrier","beam"]),blocked[1],SPAWN_Z-random(0,1.4));
-  const coinLane=Math.random()<.72?safeLane:Math.floor(Math.random()*3);
-  for(let i=0;i<6;i++) createCoin(coinLane,SPAWN_Z-10-i*2.25);
-  if(Math.random()<.2) createPower(pick(["magnet","double","shield","board"]),safeLane,SPAWN_Z-5);
-  game.spawnTimer=random(1.02,1.3)*(22/game.speed);
+  const blocked=[0,1,2].filter(lane=>lane!==safeLane);
+  const obstacleTypes=["crate","barrier","beam"];
+  if(level>=2) obstacleTypes.push("cones");
+  if(level>=3) obstacleTypes.push("van");
+  const trainChance=level<3?0:Math.min(.34,.12+(level-3)*.055);
+  const firstType=Math.random()<trainChance?"train":pick(obstacleTypes);
+  createObstacle(firstType,blocked[0],SPAWN_Z);
+  const secondChance=Math.min(.68,.2+level*.075);
+  if(Math.random()<secondChance) {
+    const secondTypes=obstacleTypes.filter(type=>type!=="van"||level>=4);
+    createObstacle(pick(secondTypes),blocked[1],SPAWN_Z-random(0,1.2));
+  }
+  const coinLane=safeLane;
+  for(let i=0;i<7;i++) createCoin(coinLane,SPAWN_Z-9-i*2.15);
+  if(Math.random()<Math.min(.32,.16+level*.025)) createPower(pick(["magnet","double","shield","board"]),safeLane,SPAWN_Z-5);
+  game.spawnTimer=clamp(random(1.34,1.5)-(level-1)*.085,.76,1.5)*Math.pow(22/game.speed,.28);
 }
 function removeEntity(entity) {
   world.remove(entity.group);
@@ -505,13 +630,14 @@ window.addEventListener("pointerdown",ensureAudio,{once:true,passive:true});
 function resetGame() {
   clearEntities();
   game={
-    lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.78,jumpVelocity:0,jumpHeight:0,
+    lane:1,targetX:0,visualX:0,jumpRemaining:0,jumpDuration:.85,jumpVelocity:0,jumpHeight:0,
     slideRemaining:0,spawnTimer:.8,speed:22,distance:0,score:0,coins:0,
     magnetTime:0,multiplierTime:0,shield:false,boardCharges:1,boardTime:0,
-    boardActive:false,runTime:0,shake:0,hitFlash:0,pattern:0,musicTimer:.18,musicStep:0
+    boardActive:false,trainRide:null,trainRideHeight:0,level:1,runTime:0,shake:0,hitFlash:0,pattern:0,musicTimer:.18,musicStep:0
   };
   playerRig.root.position.set(0,0,PLAYER_Z);
   playerRig.root.scale.set(1,1,1);
+  playerRig.root.position.y=0;
   chaserRig.root.position.set(-1.35,0,4.2);
   chaserRig.root.visible=true;
   ui.score.textContent="0";ui.coins.textContent="0";ui.distance.textContent="0 m";
@@ -522,7 +648,8 @@ function updateHud() {
   ui.score.textContent=game.score.toLocaleString();
   ui.coins.textContent=game.coins.toLocaleString();
   ui.distance.textContent=Math.floor(game.distance)+" m";
-  const powers=[];
+  const powers=[`LEVEL ${game.level||1}`];
+  if(game.trainRide) powers.push("ON TRAIN");
   if(game.magnetTime>0) powers.push("MAGNET "+Math.ceil(game.magnetTime)+"s");
   if(game.multiplierTime>0) powers.push("2× SCORE "+Math.ceil(game.multiplierTime)+"s");
   if(game.shield) powers.push("SHIELD READY");
@@ -587,6 +714,10 @@ function moveLane(direction) {
   if(state!=="running") return;
   const next=clamp(game.lane+direction,0,2);
   if(next!==game.lane){
+    if(game.trainRide&&game.trainRide.lane!==next) {
+      game.trainRide=null;
+      game.trainRideHeight=0;
+    }
     game.lane=next;game.targetX=LANES[next];
     // Apply the lane change immediately; the renderer only smooths the final few pixels.
     soundEffect("move");
@@ -597,7 +728,7 @@ function jump() {
   if(game.slideRemaining>0) game.slideRemaining=0;
   if(game.jumpRemaining>0) return;
   game.jumpRemaining=game.jumpDuration;
-  game.jumpVelocity=9.8;
+  game.jumpVelocity=10.6;
   game.jumpHeight=.08;
   playerRig.root.position.y=game.jumpHeight;
   soundEffect("jump");
@@ -728,9 +859,10 @@ function collectPower(entity) {
 function collide(entity) {
   if(entity.resolved)return;
   entity.resolved=true;
-  if(entity.type==="barrier"&&game.jumpRemaining>.1){removeEntity(entity);return;}
+  if(entity.type==="barrier"&&game.jumpHeight>.78){removeEntity(entity);return;}
   if(entity.type==="beam"&&game.slideRemaining>.1){removeEntity(entity);return;}
-  if(entity.type==="crate"&&game.jumpRemaining>.36){removeEntity(entity);return;}
+  if(entity.type==="crate"&&game.jumpHeight>1.48){removeEntity(entity);return;}
+  if(entity.type==="cones"&&game.jumpHeight>1.02){removeEntity(entity);return;}
   if(game.shield){game.shield=false;game.hitFlash=.22;removeEntity(entity);soundEffect("power");updateHud();return;}
   if(game.boardActive){game.boardActive=false;game.boardTime=0;removeEntity(entity);soundEffect("board");updateHud();return;}
   finishGame();
@@ -753,16 +885,55 @@ function updateEntities(dt) {
       entity.group.rotation.y+=dt*1.65;
       entity.group.position.y=1.55+Math.sin(game.runTime*3+entity.phase)*.12;
       if(((previous<=0&&current>=0)||Math.abs(current)<.45)&&entity.lane===game.lane)collectPower(entity);
-    } else {
-      if(previous<0&&current>=0&&entity.lane===game.lane)collide(entity);
+    } else if(entity.kind==="train") {
+      const localZ=-current;
+      if(entity.lane===game.lane) {
+        if(game.trainRide===entity) {
+          if(localZ>entity.rampStart&&localZ<=entity.rampEnd) {
+            const progress=(entity.rampEnd-localZ)/(entity.rampEnd-entity.rampStart);
+            game.trainRideHeight=entity.roofY*clamp(progress,0,1);
+          } else if(localZ<=entity.rampStart&&localZ>=-entity.halfLength) {
+            game.trainRideHeight=entity.roofY;
+          } else if(localZ < -entity.halfLength) {
+            game.trainRide=null;
+            game.trainRideHeight=0;
+          }
+        } else if(localZ<=entity.rampEnd&&localZ>entity.rampStart) {
+          game.trainRide=entity;
+          const progress=(entity.rampEnd-localZ)/(entity.rampEnd-entity.rampStart);
+          game.trainRideHeight=entity.roofY*clamp(progress,0,1);
+        } else if(localZ<=entity.rampStart&&localZ>=-entity.halfLength) {
+          if(game.jumpHeight>1.42) {
+            game.trainRide=entity;
+            game.trainRideHeight=entity.roofY;
+          } else {
+            collide(entity);
+          }
+        }
+      } else if(game.trainRide===entity) {
+        game.trainRide=null;
+        game.trainRideHeight=0;
+      }
+    } else if(previous<0&&current>=0&&entity.lane===game.lane) {
+      collide(entity);
     }
-    if(entity.resolved||current>12){
-      removeEntity(entity);entities.splice(index,1);
+    if(state!=="running") break;
+    const passedTrain=current>22&&entity.kind==="train";
+    const passedObstacle=current>12&&entity.kind!=="train";
+    if(entity.resolved||passedTrain||passedObstacle) {
+      if(game.trainRide===entity){game.trainRide=null;game.trainRideHeight=0;}
+      removeEntity(entity);
+      entities.splice(index,1);
     }
   }
+  playerRig.root.position.y=(game.trainRide?game.trainRideHeight:0)+game.jumpHeight;
 }
 function updateScenery(dt) {
   const move=scenerySpeed*dt;
+  for(const sleeper of railSleepers) {
+    sleeper.position.z+=move;
+    if(sleeper.position.z>12)sleeper.position.z-=230;
+  }
   for(const marker of roadMarkers) {
     marker.position.z+=move;
     if(marker.position.z>10)marker.position.z-=208;
@@ -782,7 +953,12 @@ function updateGame(dt) {
   game.runTime+=dt;
   game.musicTimer-=dt;
   if(game.musicTimer<=0){playRunBeat(game.musicStep++);game.musicTimer=.48;}
-  game.speed=Math.min(35,22+game.runTime*.22);
+  const nextLevel=game.distance<180?1:game.distance<420?2:game.distance<720?3:game.distance<1100?4:game.distance<1550?5:6;
+  if(nextLevel!==game.level) {
+    game.level=nextLevel;
+    soundEffect("power");
+  }
+  game.speed=Math.min(40,22+game.runTime*.16+(game.level-1)*.82);
   scenerySpeed=game.speed;
   game.distance+=game.speed*dt*.42;
   game.spawnTimer-=dt;
